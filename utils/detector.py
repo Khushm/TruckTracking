@@ -3,6 +3,7 @@ import cv2
 import os
 
 
+
 execution_path = os.path.abspath("D:/InternShips/SmartIam/YOLOv3/")
 detector = ObjectDetection()
 detector.setModelTypeAsYOLOv3()
@@ -19,10 +20,10 @@ def get_image(frame):
     #                                                                             each_files),
     #                                              minimum_percentage_probability=30)
 
-    detections = detector.detectObjectsFromImage(input_image= frame,
+    detections = detector.detectObjectsFromImage(input_image= frame,input_type="array",
                                                  output_image_path=os.path.join(execution_path, 'images' 'out_put.jpg'),
                                                  minimum_percentage_probability=30)
-    print(detections)
+    #print(detections)
     return detections
 
 
@@ -48,11 +49,14 @@ def get_only_trucks(detections):
  #   for eachObject in truck_detections:
 
 
+def get_truck_detection(frames):
+    detected_obj = get_image(frames)
+    detected_truck = get_only_trucks(detected_obj)
+    #print(detected_truck)
+    return detected_truck
 
 image_path = 'D:/InternShips/SmartIam/YOLOv3/images/1.jpg'
 frame = cv2.imread(image_path)
-detected_obj = get_image(image_path)
-detected_truck = get_only_trucks(detected_obj)
-print(detected_truck)
+get_truck_detection(frame)
 #truck_count = number_trucks(detected_truck)
 
