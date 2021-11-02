@@ -2,9 +2,9 @@ from imageai.Detection import ObjectDetection
 import cv2
 import os
 
+execution_path = os.getcwd()
 
-
-execution_path = os.path.abspath("D:/InternShips/SmartIam/YOLOv3/")
+# execution_path = os.path.abspath("D:/InternShips/SmartIam/YOLOv3/")
 detector = ObjectDetection()
 detector.setModelTypeAsYOLOv3()
 detector.setModelPath(os.path.join(execution_path, "model/yolo.h5"))
@@ -55,8 +55,8 @@ def get_truck_detection(frames):
     #print(detected_truck)
     return detected_truck
 
-image_path = 'D:/InternShips/SmartIam/YOLOv3/images/1.jpg'
-frame = cv2.imread(image_path)
-get_truck_detection(frame)
+# image_path = 'D:/InternShips/SmartIam/YOLOv3/images/1.jpg'
+# frame = cv2.imread(image_path)
+# get_truck_detection(frame)
 #truck_count = number_trucks(detected_truck)
 
