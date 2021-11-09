@@ -14,7 +14,9 @@ def roadImage():
 
 
 execution_path = os.getcwd()
+
 allData = ""
+
 # truck_coord = {'Coordinates': [[0, 0, 0, 0], [0, 0, 0, 0]], 'TruckCount': 2}
 # main_response = []
 # truckCount = 0
@@ -38,25 +40,22 @@ def checkID(med, area, x1, y1, x2, y2, prevFileName, currFilename, current_frame
         if (centTHV(value['Centroid'][0], '+') > med[0] > centTHV(value['Centroid'][0], '-')) and \
                 (centTHV(value['Centroid'][1], '+') > med[1] > centTHV(value['Centroid'][1], '-')) and \
                 (areaTHV(value['Area'], '+') > area > areaTHV(value['Area'], '-')):
-            # print('C:/Users/munda/PycharmProjects/IAmSmart-T0/images/CAM 05/2021-05-66/' + str(value['Image_name'][-1]) + ".jpg")
-            # t = cv2.imread('C:/Users/munda/PycharmProjects/IAmSmart-T0/images/CAM 05/2021-05-07/' + str(value['Image_name'][-1]) + ".jpg")
 
-            # t = t[y1:y2, x1:x2]
-            # print("Shape", current_frame.shape, t.shape)
-            # BSCount = backgroundSubtract(current_frame, t)
-            # print("Same Truck Detected of id, ", count)
+            t = cv2.imread('C:/Users/munda/PycharmProjects/IAmSmart-T0/images/CAM 06/2021-05-22/' + str(value['Image_name'][-1]) + ".jpg")
+            t = t[y1:y2, x1:x2]
 
-            # if(BSCount['white_pixel_count'] < whiteTHV()):
-            #     print("--Confirmed by Image Subtraction, image name appended!")
-            result[key]['Image_name'].append(currFilename) # Same Truck at same place on same day
-            print('ID: ', key)
-            find = True
-            count += 1
-                # break
-            # else:
-            #     print("--Truck has different features, not the same truck!")
-            #     continue
+            BSCount = backgroundSubtract(current_frame, t)
+            print("Same Truck Detected of id, ", key)
 
+            if(BSCount['white_pixel_count'] < whiteTHV()):
+                print("--Confirmed by Image Subtraction, Image name appended!")
+                result[key]['Image_name'].append(currFilename) # Same Truck at same place on same day
+                print('ID: ', key)
+                find = True
+                break
+            else:
+                print("--Truck has different features, not the same truck!")
+        count += 1
     if find == False:
         print("Truck ID needed to be generated")
         Count = backgroundSubtract(current_frame, previous_frame)  # Just to confirm before appending
@@ -71,7 +70,7 @@ def checkID(med, area, x1, y1, x2, y2, prevFileName, currFilename, current_frame
         else:
             print("--Same truck, Just calculation error! No new ID created")
 
-    # allData += prevFileName, currFilename, area(x1, y1, x2, y2), rectCentroid(x1, y1, x2, y2), white, "\n"
+    allData += f"{prevFileName},{currFilename},{str(area(x1, y1, x2, y2))},{','.join(rectCentroid(x1, y1, x2, y2))},{str(white)},\n"
     # print(count)
     print("Updated Result Dict: ", result)
     # print("ALL DATA: \n", allData)
@@ -82,7 +81,7 @@ def area(x1, y1, x2, y2):
 
 
 def rectCentroid(x1, y1, x2, y2):
-    return (x1 + x2) / 2, (y1 + y2) / 2
+    return [(x1 + x2) / 2, (y1 + y2) / 2]
 
 
 def maxTruckSize():
@@ -194,14 +193,14 @@ def Tracker(current_img, previous_img):
     # global truckCount
     global outputDir
     outputDir = os.path.join(execution_path, 'output', current_img['fileName'].split('.')[0])
-    print("Current Image- ", outputDir)
+    # print("Current Image- ", outputDir)
 
     cv2.imwrite(str(outputDir) + '/Current.jpg', current_img['frame'])
     cv2.imwrite(outputDir + '/Previous.jpg', previous_img['frame'])
     # response = {current_img['fileName']: []}
 
     truck_coord_ = get_truck_detection(current_img['frame'])
-    print("Truck Coord from detector: ", truck_coord_)
+    # print("Truck Coord from detector: ", truck_coord_)
     global i
     i = 0
 
@@ -221,7 +220,7 @@ def Tracker(current_img, previous_img):
                         print("Non-detected Truck from some prev frame is repeated")
                         break
                 noneDetectedImages.append(current_img['frame'])
-                print("New image found & saved! ", noneDetectedImages)
+                print("New image found & saved! ")
         return result
 
     # print(truck_coord_)
