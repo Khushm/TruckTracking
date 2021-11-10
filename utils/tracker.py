@@ -1,20 +1,22 @@
+import time
+
 from utils.detector import get_truck_detection
 import cv2
 import numpy as np
 import os
 
-
+color2 = (0, 0, 255)
 color = (255, 0, 0)
 thickness = 2
+path = 'C:/Users/munda/PycharmProjects/IAmSmart-T0/images/CAM 05/2021-05-07/'
 
 
 def roadImage():
-    return cv2.imread('C:/Users/munda/PycharmProjects/IAmSmart-T0/images/CAM 05/2021-05-06/2021-05-06T19_24_45.jpg')
-
+    image = cv2.imread(path + '2021-05-06T23_45_24.jpg')
+    return image[93:998, 625:1745]
 
 
 execution_path = os.getcwd()
-
 allData = ""
 
 # truck_coord = {'Coordinates': [[0, 0, 0, 0], [0, 0, 0, 0]], 'TruckCount': 2}
@@ -25,6 +27,7 @@ allData = ""
 result = {
     0: {'Area': 00, 'Centroid': [0, 0], 'Coordinates': (0, 0, 0, 0), 'Image_name': ['default.jpg']}
 }
+
 
 def whiteTHV():
     return 10.5
@@ -41,13 +44,57 @@ def checkID(med, area, x1, y1, x2, y2, prevFileName, currFilename, current_frame
                 (centTHV(value['Centroid'][1], '+') > med[1] > centTHV(value['Centroid'][1], '-')) and \
                 (areaTHV(value['Area'], '+') > area > areaTHV(value['Area'], '-')):
 
-            t = cv2.imread('C:/Users/munda/PycharmProjects/IAmSmart-T0/images/CAM 06/2021-05-22/' + str(value['Image_name'][-1]) + ".jpg")
+            t = cv2.imread(path + str(value['Image_name'][-1]) + ".jpg")
+            t = t[93:998, 625:1745]
+            # tx1, ty1, tx2, ty2 = value['Coordinates']
+            #
+            # # if t.shape != current_frame.shape:
+            # print("t", tx1, ty1, tx2, ty2)
+            print("c", x1, y1, x2, y2)
+            # print("Not equal")
+
+            # ax1 = x1 if x1 > tx1 else tx1
+            # ax2 = x2 if x2 < tx2 else tx2
+            # ay1 = y1 if y1 > ty1 else ty1
+            # ay2 = y2 if y2 < ty2 else ty2
+            # print("actual", ax1, ay1, ax2, ay2)
+
+            # t = t[ay1:ay2, ax1:ax2]
+            # current_frame = current_frame[ay1:ay2, ax1:ax2]
+            # cv2.imshow("T frame", t)
+            # cv2.imshow("Current Frame", current_frame)
+            # cv2.waitKey(5)
+
+            # if y2-y1 > ty2-ty1:
+            #     if x2-x1 > tx2-tx1:
+            #         print("1")
+            #         current_frame = current_frame[ty1:ty2, tx1:tx2]
+            #     else:
+            #         print("2")
+            #         current_frame = current_frame[ty1:ty2, x1:x2]
+            #         t = t[ty1:ty2, x1:x2]
+            # else:
+            #     if x2 - x1 > tx2 - tx1:
+            #         print("3")
+            #         current_frame = current_frame[y1:y2, tx1:tx2]
+            #         t = t[y1:y2, tx1:tx2]
+            #     else:
+            #         print("4")
+            print("before", t.shape, current_frame.shape)
+
             t = t[y1:y2, x1:x2]
 
+                # if t.shape < current_frame.shape:
+                #     print("c", tx1, ty1, tx2, ty2)
+                #     current_frame = current_frame[ty1:ty2, tx1:tx2]
+                #
+                # else:
+                #     t = t[y1:y2, x1:x2]
+            print("s", t.shape, current_frame.shape)
             BSCount = backgroundSubtract(current_frame, t)
             print("Same Truck Detected of id, ", key)
 
-            if(BSCount['white_pixel_count'] < whiteTHV()):
+            if BSCount['white_pixel_count'] < whiteTHV():
                 print("--Confirmed by Image Subtraction, Image name appended!")
                 result[key]['Image_name'].append(currFilename) # Same Truck at same place on same day
                 print('ID: ', key)
@@ -58,9 +105,23 @@ def checkID(med, area, x1, y1, x2, y2, prevFileName, currFilename, current_frame
         count += 1
     if find == False:
         print("Truck ID needed to be generated")
+
+        # if previous_frame.shape != current_frame.shape:
+        #     if previous_frame.shape < current_frame.shape:
+        #         gray = cv2.cvtColor(previous_frame, cv2.COLOR_BGR2GRAY)
+        #         edges = cv2.Canny(gray, 50, 200)
+        #         contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+        #         sorted_contours = sorted(contours, key=cv2.contoursArea, reverse=False)
+        #         largest_item = sorted_contours[-1]
+        #         x, y, w, h = cv2.boundingRect(largest_item)
+        #         current_frame = current_frame[y:y + h, x:x + w]
+        #     else:
+        #         previous_frame = previous_frame[y1:y2, x1:x2]
+
         Count = backgroundSubtract(current_frame, previous_frame)  # Just to confirm before appending
         white = Count["white_pixel_count"]
-        if (Count["white_pixel_count"] > whiteTHV()):
+
+        if Count["white_pixel_count"] > whiteTHV():
             # Confirm - Different Truck slided in
             print("--New Truck Confirmed by Background Subtraction")
             dict1 = {
@@ -70,7 +131,7 @@ def checkID(med, area, x1, y1, x2, y2, prevFileName, currFilename, current_frame
         else:
             print("--Same truck, Just calculation error! No new ID created")
 
-    allData += f"{prevFileName},{currFilename},{str(area(x1, y1, x2, y2))},{','.join(rectCentroid(x1, y1, x2, y2))},{str(white)},\n"
+    # allData += f"{prevFileName},{currFilename},{str(area(x1, y1, x2, y2))},{','.join(rectCentroid(x1, y1, x2, y2))},{str(white)},\n"
     # print(count)
     print("Updated Result Dict: ", result)
     # print("ALL DATA: \n", allData)
@@ -85,7 +146,7 @@ def rectCentroid(x1, y1, x2, y2):
 
 
 def maxTruckSize():
-    value = 120000
+    value = 107501   #120000
     return value
 
 
@@ -156,34 +217,54 @@ def TruckCount(Count):
 
 
 def firstImage(prev):
+    startTime = time.time()
+    ImageCopy = prev['frame'].copy()
     truck_coord_ = get_truck_detection(prev['frame'])
+
+    print("Time after detection- ", time.time()-startTime)
+
+    print()
+    # print(truck_coord_)
+
+    global outputDir
+    outputDir = os.path.join(execution_path, 'output', prev['fileName'].split('.')[0])
+
     if truck_coord_["Count"] <= 0:
         print("No trucks in first image")
-    else:
-        # for multiple trucks detected on first image
-        for cords in truck_coord_['Co_Ordinates']:
-            x1, y1, x2, y2 = cords
-            if area(x1, y1, x2, y2) > maxTruckSize():
-                find = False
-                count = 0
-                for key, value in result.items():
-                    if (centTHV(value['Centroid'][0], '+') > rectCentroid(x1, y1, x2, y2)[0] > centTHV(value['Centroid'][0], '-'))\
-                            and (centTHV(value['Centroid'][1], '+') > rectCentroid(x1, y1, x2, y2)[1] > centTHV(value['Centroid'][1], '-'))\
-                            and (areaTHV(value['Area'], '+') > area(x1, y1, x2, y2) > areaTHV(value['Area'], '-')):
-                        result[key]['Image_name'].append(prev['fileName'])
-                        # value['Time'] += 15
-                        print('ID: ', key)
-                        find = True
-                    count += 1
-                if find == False:
-                    print("Truck found on first Image")
-                    dict1 = {
-                        count: {'Area': area(x1, y1, x2, y2), 'Centroid': rectCentroid(x1, y1, x2, y2), 'Coordinates': (x1, y1, x2, y2),
-                                'Image_name': [prev['fileName']]}}
-                    print('ID: ', count)
-                    result.update(dict1)
-                # allData += "NaN", prev['fileName'], area(x1, y1, x2, y2), rectCentroid(x1, y1, x2, y2), "NaN", "\n"
-                print("Updated Result Dict: ", result)
+        return
+    # for multiple trucks detected on first image
+    for cords in truck_coord_['Co_Ordinates']:
+        x1, y1, x2, y2 = cords
+        ImageCopy = cv2.rectangle(ImageCopy, (x1, y1), (x2, y2), color2, thickness)
+        print(area(x1, y1, x2, y2))
+
+        if area(x1, y1, x2, y2) > maxTruckSize():
+            ImageCopy = cv2.rectangle(ImageCopy, (x1, y1), (x2, y2), color, thickness)
+            find = False
+            count = 0
+            for key, value in result.items():
+                if (centTHV(value['Centroid'][0], '+') > rectCentroid(x1, y1, x2, y2)[0] > centTHV(value['Centroid'][0], '-'))\
+                        and (centTHV(value['Centroid'][1], '+') > rectCentroid(x1, y1, x2, y2)[1] > centTHV(value['Centroid'][1], '-'))\
+                        and (areaTHV(value['Area'], '+') > area(x1, y1, x2, y2) > areaTHV(value['Area'], '-')):
+                    result[key]['Image_name'].append(prev['fileName'])
+                    # value['Time'] += 15
+                    print('ID: ', key)
+                    find = True
+                count += 1
+            if find == False:
+                print("Truck found on first Image")
+                dict1 = {
+                    count: {'Area': area(x1, y1, x2, y2), 'Centroid': rectCentroid(x1, y1, x2, y2), 'Coordinates': (x1, y1, x2, y2),
+                            'Image_name': [prev['fileName']]}}
+                print('ID: ', count)
+                result.update(dict1)
+            # allData += "NaN", prev['fileName'], area(x1, y1, x2, y2), rectCentroid(x1, y1, x2, y2), "NaN", "\n"
+            print("Updated Result Dict: ", result)
+    cv2.imwrite(str(outputDir) + '/Box.jpg', ImageCopy)
+    print("Time after Tracking- ", time.time()-startTime)
+
+    return
+
 
 
 noneDetectedImages = []
@@ -199,7 +280,12 @@ def Tracker(current_img, previous_img):
     cv2.imwrite(outputDir + '/Previous.jpg', previous_img['frame'])
     # response = {current_img['fileName']: []}
 
+    ImageCopy = current_img['frame'].copy()     # To draw bounding boxes
+
+    startTime = time.time()
     truck_coord_ = get_truck_detection(current_img['frame'])
+    print("Time after detection- ", time.time()-startTime)
+
     # print("Truck Coord from detector: ", truck_coord_)
     global i
     i = 0
@@ -220,16 +306,16 @@ def Tracker(current_img, previous_img):
                         print("Non-detected Truck from some prev frame is repeated")
                         break
                 noneDetectedImages.append(current_img['frame'])
-                print("New image found & saved! ")
+                print("New image found & saved!")
         return result
 
     # print(truck_coord_)
     for cords in truck_coord_['Co_Ordinates']:
         x1, y1, x2, y2 = cords
+        ImageCopy = cv2.rectangle(ImageCopy, (x1,y1), (x2,y2), color2, thickness)
 
         if area(x1, y1, x2, y2) > maxTruckSize():
-            rect = cv2.rectangle(current_img['frame'], (x1, y1), (x2, y2), color, thickness)
-            cv2.imwrite(str(outputDir) + '/Box.jpg', rect)
+            ImageCopy = cv2.rectangle(ImageCopy, (x1, y1), (x2, y2), color, thickness)
 
             current_frame = cropImg(current_img['frame'], x1, y1, x2, y2)
             previous_frame = cropImg(previous_img['frame'], x1, y1, x2, y2)
@@ -261,6 +347,9 @@ def Tracker(current_img, previous_img):
     # main_response.append(response)
     # print(main_response)
     # print("Day count of the Truck" + str(truckCount))
+    cv2.imwrite(str(outputDir) + '/Box.jpg', ImageCopy)
+    print("Time after tracking- ", time.time()-startTime)
+
     return result
 
 # main_data = {"image_current": [{id: {"black_pix_count": "", "white_pixel_count": ""}}, {id: {...}}..... ]
