@@ -4,7 +4,7 @@ import cv2
 import os
 
 execution_path = os.getcwd()
-path = 'C:/Users/munda/PycharmProjects/IAmSmart-T0/images/CAM 05/2021-05-20'
+path = 'C:/Users/munda/PycharmProjects/IAmSmart-T0/images/CAM 06/2021-05-22'
 
 # makeSheet(path.split('/')[-1])
 
