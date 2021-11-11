@@ -5,15 +5,16 @@ import cv2
 import numpy as np
 import os
 
+color3 = (0,255,0)
 color2 = (0, 0, 255)
 color = (255, 0, 0)
 thickness = 2
-path = 'C:/Users/munda/PycharmProjects/IAmSmart-T0/images/CAM 05/2021-05-07/'
+path = 'C:/Users/munda/PycharmProjects/IAmSmart-T0/images/CAM 05/2021-05-20/'
 
 
 def roadImage():
-    image = cv2.imread(path + '2021-05-06T23_45_24.jpg')
-    return image[93:998, 625:1745]
+    image = cv2.imread('C:/Users/munda/PycharmProjects/IAmSmart-T0/images/CAM 05/2021-05-08/2021-05-08T22_26_20.jpg')
+    return image   # [93:998, 625:1745]
 
 
 execution_path = os.getcwd()
@@ -45,12 +46,15 @@ def checkID(med, area, x1, y1, x2, y2, prevFileName, currFilename, current_frame
                 (areaTHV(value['Area'], '+') > area > areaTHV(value['Area'], '-')):
 
             t = cv2.imread(path + str(value['Image_name'][-1]) + ".jpg")
-            t = t[93:998, 625:1745]
+
+            # t = t[93:998, 625:1745]
+
+
             # tx1, ty1, tx2, ty2 = value['Coordinates']
             #
             # # if t.shape != current_frame.shape:
             # print("t", tx1, ty1, tx2, ty2)
-            print("c", x1, y1, x2, y2)
+            # print("c", x1, y1, x2, y2)
             # print("Not equal")
 
             # ax1 = x1 if x1 > tx1 else tx1
@@ -80,7 +84,7 @@ def checkID(med, area, x1, y1, x2, y2, prevFileName, currFilename, current_frame
             #         t = t[y1:y2, tx1:tx2]
             #     else:
             #         print("4")
-            print("before", t.shape, current_frame.shape)
+            # print("before", t.shape, current_frame.shape)
 
             t = t[y1:y2, x1:x2]
 
@@ -90,7 +94,7 @@ def checkID(med, area, x1, y1, x2, y2, prevFileName, currFilename, current_frame
                 #
                 # else:
                 #     t = t[y1:y2, x1:x2]
-            print("s", t.shape, current_frame.shape)
+            # print("s", t.shape, current_frame.shape)
             BSCount = backgroundSubtract(current_frame, t)
             print("Same Truck Detected of id, ", key)
 
@@ -146,8 +150,8 @@ def rectCentroid(x1, y1, x2, y2):
 
 
 def maxTruckSize():
-    value = 107501   #120000
-    return value
+    # 107501   120000
+    return 90000
 
 
 def centTHV(dictVal, sign):
@@ -201,7 +205,7 @@ def backgroundSubtract(current_, previous_):
 
     Count = {"black_pixel_count": float(np.sum(diff == 0) / tot_pix_count) * 100,
              "white_pixel_count": float(np.sum(diff == 255) / tot_pix_count) * 100}
-    print(Count)
+    # print(Count)
     return Count
 
 
@@ -221,9 +225,8 @@ def firstImage(prev):
     ImageCopy = prev['frame'].copy()
     truck_coord_ = get_truck_detection(prev['frame'])
 
-    print("Time after detection- ", time.time()-startTime)
+    # print("Time after detection- ", time.time()-startTime)
 
-    print()
     # print(truck_coord_)
 
     global outputDir
@@ -236,7 +239,7 @@ def firstImage(prev):
     for cords in truck_coord_['Co_Ordinates']:
         x1, y1, x2, y2 = cords
         ImageCopy = cv2.rectangle(ImageCopy, (x1, y1), (x2, y2), color2, thickness)
-        print(area(x1, y1, x2, y2))
+        # print(area(x1, y1, x2, y2))
 
         if area(x1, y1, x2, y2) > maxTruckSize():
             ImageCopy = cv2.rectangle(ImageCopy, (x1, y1), (x2, y2), color, thickness)
@@ -261,7 +264,7 @@ def firstImage(prev):
             # allData += "NaN", prev['fileName'], area(x1, y1, x2, y2), rectCentroid(x1, y1, x2, y2), "NaN", "\n"
             print("Updated Result Dict: ", result)
     cv2.imwrite(str(outputDir) + '/Box.jpg', ImageCopy)
-    print("Time after Tracking- ", time.time()-startTime)
+    # print("Time after Tracking- ", time.time()-startTime)
 
     return
 
@@ -270,7 +273,7 @@ def firstImage(prev):
 noneDetectedImages = []
 
 
-def Tracker(current_img, previous_img):
+def Tracker(current_img, previous_img, actual):
     # global truckCount
     global outputDir
     outputDir = os.path.join(execution_path, 'output', current_img['fileName'].split('.')[0])
@@ -281,6 +284,7 @@ def Tracker(current_img, previous_img):
     # response = {current_img['fileName']: []}
 
     ImageCopy = current_img['frame'].copy()     # To draw bounding boxes
+    ImageCopy = cv2.rectangle(ImageCopy, (625, 93), (1745, 998), color3, thickness)
 
     startTime = time.time()
     truck_coord_ = get_truck_detection(current_img['frame'])
@@ -307,25 +311,31 @@ def Tracker(current_img, previous_img):
                         break
                 noneDetectedImages.append(current_img['frame'])
                 print("New image found & saved!")
+        cv2.imwrite(execution_path + '/output' + '/ImagesCurrent' + '/box' + str(actual) + '.jpg', ImageCopy)
         return result
 
     # print(truck_coord_)
     for cords in truck_coord_['Co_Ordinates']:
         x1, y1, x2, y2 = cords
-        ImageCopy = cv2.rectangle(ImageCopy, (x1,y1), (x2,y2), color2, thickness)
 
-        if area(x1, y1, x2, y2) > maxTruckSize():
-            ImageCopy = cv2.rectangle(ImageCopy, (x1, y1), (x2, y2), color, thickness)
+        ImageCopy = cv2.rectangle(ImageCopy, (x1, y1), (x2, y2), color2, thickness)
+        # print("Area: ", area(x1, y1, x2, y2))
+        # print(rectCentroid(x1, y1, x2, y2))
 
-            current_frame = cropImg(current_img['frame'], x1, y1, x2, y2)
-            previous_frame = cropImg(previous_img['frame'], x1, y1, x2, y2)
-            cv2.imwrite(outputDir + '/CropCurrent' + str(i) + '.jpg', current_frame)
-            cv2.imwrite(outputDir + '/CropPrevious' + str(i) + '.jpg', previous_frame)
+        if 625 < rectCentroid(x1, y1, x2, y2)[0] < 1745 and 93 < rectCentroid(x1, y1, x2, y2)[1] < 998:
+            ImageCopy = cv2.rectangle(ImageCopy, (x1, y1), (x2, y2), color3, thickness)
+            if area(x1, y1, x2, y2) > maxTruckSize():
+                ImageCopy = cv2.rectangle(ImageCopy, (x1, y1), (x2, y2), color, thickness)
 
-            checkID(rectCentroid(x1, y1, x2, y2), area(x1, y1, x2, y2), x1, y1, x2, y2, previous_img['fileName'],
-                    current_img['fileName'], current_frame, previous_frame)
+                current_frame = cropImg(current_img['frame'], x1, y1, x2, y2)
+                previous_frame = cropImg(previous_img['frame'], x1, y1, x2, y2)
+                cv2.imwrite(outputDir + '/CropCurrent' + str(i) + '.jpg', current_frame)
+                cv2.imwrite(outputDir + '/CropPrevious' + str(i) + '.jpg', previous_frame)
 
-            i += 1
+                checkID(rectCentroid(x1, y1, x2, y2), area(x1, y1, x2, y2), x1, y1, x2, y2, previous_img['fileName'],
+                        current_img['fileName'], current_frame, previous_frame)
+
+                i += 1
 
         # if area(x1, y1, x2, y2) > maxTruckSize():
         #     current_frame = cropImg(current_img['frame'], x1, y1, x2, y2)
@@ -347,7 +357,8 @@ def Tracker(current_img, previous_img):
     # main_response.append(response)
     # print(main_response)
     # print("Day count of the Truck" + str(truckCount))
-    cv2.imwrite(str(outputDir) + '/Box.jpg', ImageCopy)
+    cv2.imwrite(execution_path + '/output' + '/ImagesCurrent' + '/box' + str(actual) + '.jpg', ImageCopy)
+    # cv2.imwrite(str(outputDir) + '/Box.jpg', ImageCopy)
     print("Time after tracking- ", time.time()-startTime)
 
     return result
