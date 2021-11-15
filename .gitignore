@@ -2,3 +2,4 @@
 images/
 model/
 output/
+utils/readjson.py

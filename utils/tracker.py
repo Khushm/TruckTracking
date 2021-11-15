@@ -1,24 +1,25 @@
 import time
 from globals import config
-
+import json
 from utils.detector import get_truck_detection
 import cv2
 import numpy as np
 import os
+from loguru import logger
+from mongoConn import get_mongo_client
 
-path = 'C:/Users/munda/PycharmProjects/IAmSmart-T0/images/CAM 06/2021-05-22/'
-
+path = 'C:/Users/munda/PycharmProjects/IAmSmart-T0/images/CAM 07/2021-05-11/'
 
 def roadImage():
     # image = cv2.imread('C:/Users/munda/PycharmProjects/IAmSmart-T0/images/CAM 05/2021-05-08/2021-05-08T22_26_20.jpg')
-    image = cv2.imread('C:/Users/munda/PycharmProjects/IAmSmart-T0/images/CAM 06/2021-05-20/2021-05-20T18_17_29.jpg')
-    # image = cv2.imread('C:/Users/munda/PycharmProjects/IAmSmart-T0/images/CAM 07/2021-05-10/2021-05-11T07_08_42.jpg')
+    # image = cv2.imread('C:/Users/munda/PycharmProjects/IAmSmart-T0/images/CAM 06/2021-05-20/2021-05-20T18_17_29.jpg')
+    image = cv2.imread('C:/Users/munda/PycharmProjects/IAmSmart-T0/images/CAM 07/2021-05-11/2021-05-11T07_08_42.jpg')
     return image   # [93:998, 625:1745]
 
 
 execution_path = os.getcwd()
 allData = ""
-
+ImageID = {}
 # truck_coord = {'Coordinates': [[0, 0, 0, 0], [0, 0, 0, 0]], 'TruckCount': 2}
 # main_response = []
 # truckCount = 0
@@ -27,10 +28,6 @@ allData = ""
 result = {
     0: {'Area': 00, 'Centroid': [0, 0], 'Coordinates': (0, 0, 0, 0), 'Image_name': ['default.jpg']}
 }
-
-
-# def whiteTHV():
-#     return 10.5
 
 
 # Working on previous frame
@@ -48,6 +45,8 @@ def checkID(med, area, x1, y1, x2, y2, prevFileName, currFilename, current_frame
             t = t[y1:y2, x1:x2]
 
             BSCount = backgroundSubtract(current_frame, t)
+            # dict1["diff"] = BSCount["white_pixel_count"]
+
             print("Same Truck Detected of id, ", key)
 
             if BSCount['white_pixel_count'] < config['whiteTHV']:
@@ -55,7 +54,9 @@ def checkID(med, area, x1, y1, x2, y2, prevFileName, currFilename, current_frame
                 result[key]['Image_name'].append(currFilename) # Same Truck at same place on same day
                 print('ID: ', key)
                 find = True
-                break
+                # ImageID.append({currFilename['fileName']: key})
+                return key
+                # break
             else:
                 print("--Truck has different features, not the same truck!")
         count += 1
@@ -63,7 +64,9 @@ def checkID(med, area, x1, y1, x2, y2, prevFileName, currFilename, current_frame
         print("Truck ID needed to be generated")
 
         Count = backgroundSubtract(current_frame, previous_frame)  # Just to confirm before appending
-        white = Count["white_pixel_count"]
+        # dict1["diff"] = Count["white_pixel_count"]
+
+        # white = Count["white_pixel_count"]
 
         if Count["white_pixel_count"] > config['whiteTHV']:
             # Confirm - Different Truck slided in
@@ -72,8 +75,10 @@ def checkID(med, area, x1, y1, x2, y2, prevFileName, currFilename, current_frame
                 count: {'Area': area, 'Centroid': med, 'Coordinates': (x1, y1, x2, y2), 'Image_name': [currFilename]}}
             print('ID: ', count)
             result.update(dict1)
+            return count
         else:
             print("--Same truck, Just calculation error! No new ID created")
+            return count - 1
 
     # allData += f"{prevFileName},{currFilename},{str(area(x1, y1, x2, y2))},{','.join(rectCentroid(x1, y1, x2, y2))},{str(white)},\n"
     # print(count)
@@ -107,7 +112,7 @@ def cropImg(current_img, x1, y1, x2, y2):
     return current_img[y1:y2, x1:x2]
 
 
-def backgroundSubtract(current_, previous_):
+def backgroundSubtract(current_, previous_,):
     global i
     current = cv2.cvtColor(current_, cv2.COLOR_BGR2GRAY)
     previous = cv2.cvtColor(previous_, cv2.COLOR_BGR2GRAY)
@@ -121,16 +126,6 @@ def backgroundSubtract(current_, previous_):
     _, diff = cv2.threshold(diff, 62, 255, cv2.THRESH_BINARY)
     diff = cv2.medianBlur(diff, 5)
     cv2.imwrite(outputDir + '/Diff' + str(i) + '.jpg', diff)
-
-    # contours, _ = cv2.findContours(diff, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-    # detections = []
-    # for cnt in contours:
-    #     area = cv2.contourArea(cnt)
-    #     if area>700:
-    #         cv2.drawContours(current_, [cnt], -1, (255, 0, 0), 2)
-    #         x, y, w, h = cv2.boundingRect(cnt)
-    #         cv2.rectangle(current_, (x, y), (x + w, y + h), (0, 255, 0), 3)
-    #         detections.append([x, y, w, h])
 
     h, w = diff.shape
     tot_pix_count = h * w
@@ -156,7 +151,7 @@ def TruckCount(Count):
 
 
 def firstImage(prev):
-    startTime = time.time()
+    # startTime = time.time()
     ImageCopy = prev['frame'].copy()
     truck_coord_ = get_truck_detection(prev['frame'])
 
@@ -197,6 +192,14 @@ def firstImage(prev):
                 print('ID: ', count)
                 result.update(dict1)
             # allData += "NaN", prev['fileName'], area(x1, y1, x2, y2), rectCentroid(x1, y1, x2, y2), "NaN", "\n"
+
+            Truckdata = {"ID": id, "Date": config['DateTime'].split("T")[0], "CAM": config["CAM"],
+                         "ROI": (config["minX"], config["minY"], config["maxX"], config["maxY"]),
+                         "PrevImage": "NaN", "CurrImage": prev['fileName'],
+                         "BoundingArea": (x1, y1, x2, y2), "Time": (config['DateTime'].split("T")[1]).replace("_", ":")}
+
+            print(Truckdata)
+
             print("Updated Result Dict: ", result)
     cv2.imwrite(str(outputDir) + '/Box.jpg', ImageCopy)
     # print("Time after Tracking- ", time.time()-startTime)
@@ -204,11 +207,28 @@ def firstImage(prev):
     return
 
 
+while True:
+    mongo_coll = get_mongo_client()
+    if mongo_coll:
+        logger.info("Connected to MongoDB successfully.")
+        break
+
 
 noneDetectedImages = []
 
 
+def write_json(new_data, filename='data.json'):
+    with open(filename, 'r+') as file:
+        file_data = json.load(file)
+        file_data["TruckTrack"].append(new_data)
+        file.seek(0)
+        json.dump(file_data, file, indent=4)
+# class Tracker:
+#
+#     pass
 def Tracker(current_img, previous_img, actual):
+    dict = {"prevImage": previous_img['fileName'], "currImage": current_img['fileName'], "detection": []}
+
     # global truckCount
     global outputDir
     outputDir = os.path.join(execution_path, 'output', current_img['fileName'].split('.')[0])
@@ -220,8 +240,8 @@ def Tracker(current_img, previous_img, actual):
 
     ImageCopy = current_img['frame'].copy()     # To draw bounding boxes
     # ImageCopy = cv2.rectangle(ImageCopy, (625, 93), (1745, 998), config['color3'], config['thickness'])
-    ImageCopy = cv2.rectangle(ImageCopy, (0, 150), (1523, 1079), config['color3'], config['thickness'])
-
+    # ImageCopy = cv2.rectangle(ImageCopy, (0, 150), (1523, 1079), config['color3'], config['thickness'])
+    ImageCopy = cv2.rectangle(ImageCopy, (config['minX'], config['minY']), (config['maxX'], config['maxY']), config['color3'], config['thickness'])
     # startTime = time.time()
     truck_coord_ = get_truck_detection(current_img['frame'])
     # print("Time after detection- ", time.time()-startTime)
@@ -236,7 +256,7 @@ def Tracker(current_img, previous_img, actual):
         if DCount["white_pixel_count"] < config['whiteTHV']:
             print("Same as Previous Image")
         else:
-            DCount = backgroundSubtract(current_img['frame'], roadImage())
+            DCount = backgroundSubtract(current_img['frame'], config['roadImage'])
             if DCount["white_pixel_count"] < config['whiteTHV']:
                 print("No truck on road")
             else:
@@ -253,14 +273,15 @@ def Tracker(current_img, previous_img, actual):
     # print(truck_coord_)
     for cords in truck_coord_['Co_Ordinates']:
         x1, y1, x2, y2 = cords
-
+        # dict1 = {"prevBB": (x1, y1, x2, y2), "currBB": (x1, y1, x2, y2), "diff": ""}
         ImageCopy = cv2.rectangle(ImageCopy, (x1, y1), (x2, y2), config['color2'], config['thickness'])
         # print("Area: ", area(x1, y1, x2, y2))
         # print(rectCentroid(x1, y1, x2, y2))
 
         # if 625 < rectCentroid(x1, y1, x2, y2)[0] < 1745 and 93 < rectCentroid(x1, y1, x2, y2)[1] < 998:
-        if 0 < rectCentroid(x1, y1, x2, y2)[0] < 1523 and 150 < rectCentroid(x1, y1, x2, y2)[1] < 1079:
+        # if 0 < rectCentroid(x1, y1, x2, y2)[0] < 1523 and 150 < rectCentroid(x1, y1, x2, y2)[1] < 1079:
 
+        if config['minX'] < rectCentroid(x1,y1,x2,y2)[0] < config['maxX'] and config['minY'] < rectCentroid(x1,y1,x2,y2)[1] < config['maxY']:
             ImageCopy = cv2.rectangle(ImageCopy, (x1, y1), (x2, y2), config['color3'], config['thickness'])
             if area(x1, y1, x2, y2) > config['maxTruckSize']:
                 ImageCopy = cv2.rectangle(ImageCopy, (x1, y1), (x2, y2), config['color'], config['thickness'])
@@ -270,28 +291,21 @@ def Tracker(current_img, previous_img, actual):
                 cv2.imwrite(outputDir + '/CropCurrent' + str(i) + '.jpg', current_frame)
                 cv2.imwrite(outputDir + '/CropPrevious' + str(i) + '.jpg', previous_frame)
 
-                checkID(rectCentroid(x1, y1, x2, y2), area(x1, y1, x2, y2), x1, y1, x2, y2, previous_img['fileName'],
+                id = checkID(rectCentroid(x1, y1, x2, y2), area(x1, y1, x2, y2), x1, y1, x2, y2, previous_img['fileName'],
                         current_img['fileName'], current_frame, previous_frame)
-
+                #
+                # Truckdata = {"ID": id, "Date": config['DateTime'].split("T")[0], "CAM": config["CAM"],
+                #              "ROI": (config["minX"], config["minY"], config["maxX"], config["maxY"]),
+                #              "PrevImage": previous_img['fileName'], "CurrImage": current_img['fileName'],
+                #              "BoundingArea": (x1, y1, x2, y2), "Time": (config['DateTime'].split("T")[1]).replace("_", ":")}
+                #
+                # print(Truckdata)
+                print("Result", result)
+                # post_id = mongo_coll.insert_one(Truckdata).inserted_id
+                # print(post_id)
+                # dict["detection"].append(dict1)
                 i += 1
 
-        # if area(x1, y1, x2, y2) > config['maxTruckSize']:
-        #     current_frame = cropImg(current_img['frame'], x1, y1, x2, y2)
-        #     previous_frame = cropImg(previous_img['frame'], x1, y1, x2, y2)
-        #
-        #     cv2.imwrite(outputDir + '/CropCurrent' + str(i) + '.jpg', current_frame)
-        #     cv2.imwrite(outputDir + '/CropPrevious' + str(i) + '.jpg', previous_frame)
-
-        # cv2.imwrite('current.jpg', current_frame)
-        # cv2.imwrite('previous.jpg', previous_frame)
-
-        # Count = backgroundSubtract(current_frame, previous_frame)
-        # truckCount = TruckCount(Count)
-
-    #         i += 1
-    #         individual_objects = {i: Count}
-    #         response[current_img['fileName']].append(individual_objects)
-    #         # truck_coord['Count'] -= 1
     # main_response.append(response)
     # print(main_response)
     # print("Day count of the Truck" + str(truckCount))
@@ -299,6 +313,20 @@ def Tracker(current_img, previous_img, actual):
     # cv2.imwrite(str(outputDir) + '/Box.jpg', ImageCopy)
     # print("Time after tracking- ", time.time()-startTime)
 
+    # finalData.append(dict)
+    # print("Formatted Data List: ", finalData)
+    # write_json(finalData)
     return result
 
 # main_data = {"image_current": [{id: {"black_pix_count": "", "white_pixel_count": ""}}, {id: {...}}..... ]
+# {
+#     "id": "",
+#     "prevImage": "link",
+#     "currImage": "link",
+#     "BBox": "",
+#     "roi": "",
+#     "cam": "value",
+#     "date": "split",
+#     "time": "hour",
+#
+# }
