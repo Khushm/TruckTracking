@@ -1,0 +1,11 @@
+{
+  "TruckTrack": [
+    {
+      "data-dir" : "C:/Users/munda/PycharmProjects/IAmSmart-T0/images/CAM 05/2021-05-07",
+      "camName": "CAM 05",
+      "fromTime": "2021-05-07T02_38_17",
+      "toTime": "2021-05-07T23_55_19",
+      "ROI": "625, 93, 1745, 998"
+    }
+  ]
+}
