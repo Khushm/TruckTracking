@@ -3,9 +3,6 @@ from globals import config
 import json
 import cv2
 import os
-# finalDict = {"PrevLink": previous_img['fileName'], "CurrLink": current_img['fileName'],
-                             # "BBox": (x1, y1, x2, y2)}
-data = []
 
 execution_path = os.getcwd()
 file = open('read.json')
@@ -18,6 +15,7 @@ for i in data['TruckTrack']:
     config['CAM'] = i["camName"]
     fromT = i["fromTime"]
     toT = i['toTime']
+    config['path'] = i["data-dir"]
     config["minX"], config["minY"], config["maxX"], config["maxY"] = [int(x) for x in i['ROI'].split(",")]
     config['DateTime'] = i["fromTime"]
     path = os.path.join('C:/Users/munda/PycharmProjects/IAmSmart-T0/images/', config['CAM'], fromT.split("T")[0])
@@ -49,7 +47,4 @@ for i in data['TruckTrack']:
 
             print('------------------------------------')
             previousImg = currentImg
-    # finalData.clear()
 file.close()
-
-# {id: {obj: des, obj: des}}
