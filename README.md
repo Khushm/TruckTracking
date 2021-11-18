@@ -15,10 +15,13 @@
      2. If area centroid doesn't match and bgSubtraction error is less than threshold then error in passing the truck ID
      3. Day-Night lightening condition error
 
-### Solution:
-     1. Improve Truck detection algorithm
-     2. Maintain dict of all truck objects detected and match with them, instead of just storing previous image values
-     3. None
+[comment]: <> (### Solution:)
+
+[comment]: <> (     1. Improve Truck detection algorithm)
+
+[comment]: <> (     2. Maintain dict of all truck objects detected and match with them, instead of just storing previous image values)
+
+[comment]: <> (     3. None)
 
 ### Output: 
     -
