@@ -3,3 +3,14 @@ images/
 model/
 output/
 utils/readjson.py
+Count2.py
+elseCondition.py
+mainClass.py
+startup.py
+trackerClass.py
+utils/writedata.py
+main.py
+object.py
+test.py
+web.html
+utils/web.py
