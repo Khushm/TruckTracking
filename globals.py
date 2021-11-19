@@ -22,8 +22,8 @@ config = {
 
     "whiteTHV": 10.5,
     "maxTruckSize": 90000,
-    "centTHV": 15,
-    "areaTHV": 102000,
+    "centTHV": 17,
+    "areaTHV": 104000,
 
     "roadImage": cv2.imread('C:/Users/munda/PycharmProjects/IAmSmart-T0/images/CAM 07/2021-05-11/2021-05-11T07_08_42.jpg'),
 }

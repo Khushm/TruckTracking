@@ -1,4 +1,6 @@
 import shutil
+import uuid
+
 import requests
 from globals import config
 import json
@@ -8,8 +10,10 @@ import numpy as np
 import os
 from loguru import logger
 from mongoConn import get_mongo_client
+from datetime import datetime
 
 execution_path = os.getcwd()
+outputDir = os.path.join(execution_path, 'output')
 result = {}
 currentPresigned_url = ""
 previousPresigned_url = ""
@@ -32,14 +36,35 @@ def checkID(med, area, x1, y1, x2, y2, prevFileName, currFilename, current_frame
             prevImageCopy):
     global currentPresigned_url, previousPresigned_url
     global i
-    white = 0.0
     find = False
     count = 0
+
+    ImageCopy = cv2.rectangle(ImageCopy, (x1, y1), (x2, y2), config['color'], config['thickness'])
+    prevImageCopy = cv2.rectangle(prevImageCopy, (x1, y1), (x2, y2), config['color'], config['thickness'])
+
+    cv2.imwrite(outputDir + '/Current' + str(i) + currFilename + '.jpg', ImageCopy)
+    cv2.imwrite(outputDir + '/Previous' + str(i) + prevFileName + '.jpg', prevImageCopy)
+
+    currentPresigned_url = postRequest(outputDir, name='Current' + str(i) + currFilename + '.jpg')
+    previousPresigned_url = postRequest(outputDir, name='Previous' + str(i) + prevFileName + '.jpg')
+
+    os.remove(outputDir + '/Current' + str(i) + currFilename + '.jpg')
+    os.remove(outputDir + '/Previous' + str(i) + prevFileName + '.jpg')
+
+    if not bool(result):
+        print("Dictionary is Empty!")
+        _id = str(uuid.uuid4())
+        dict1 = {
+            _id: {'Area': area, 'Centroid': med, 'Coordinates': (x1, y1, x2, y2),
+                  'Image_name': [currFilename]}}
+        print('ID: ', _id)
+        result.update(dict1)
+        return _id
     for key, value in result.items():
         if (centTHV(value['Centroid'][0], '+') > med[0] > centTHV(value['Centroid'][0], '-')) and \
                 (centTHV(value['Centroid'][1], '+') > med[1] > centTHV(value['Centroid'][1], '-')) and \
                 (areaTHV(value['Area'], '+') > area > areaTHV(value['Area'], '-')):
-            t = cv2.imread(config['path'] + str(value['Image_name'][-1]) + ".jpg")
+            t = cv2.imread(config['path'] + '/' + str(value['Image_name'][-1]) + ".jpg")
             t = t[y1:y2, x1:x2]
 
             BSCount = backgroundSubtract(current_frame, t)
@@ -52,23 +77,13 @@ def checkID(med, area, x1, y1, x2, y2, prevFileName, currFilename, current_frame
                 result[key]['Area'] = area
                 result[key]['Coordinates'] = (x1, y1, x2, y2)
                 print('ID: ', key)
-
-                ImageCopy = cv2.rectangle(ImageCopy, (x1, y1), (x2, y2), config['color'], config['thickness'])
-                prevImageCopy = cv2.rectangle(prevImageCopy, (x1, y1), (x2, y2), config['color'], config['thickness'])
-                ImageCopy = cv2.putText(ImageCopy, key, (x1 + 10, y1 + 10), cv2.FONT_HERSHEY_SIMPLEX, 2,
-                                          config['color'], config['thickness'], cv2.LINE_AA)
-
-                cv2.imwrite(outputDir + '/Current' + str(i) + currFilename + '.jpg', ImageCopy)
-                cv2.imwrite(outputDir + '/Previous' + str(i) + prevFileName + '.jpg', prevImageCopy)
-
-                currentPresigned_url = postRequest(outputDir, name='Current' + str(i) + currFilename + '.jpg')
-                previousPresigned_url = postRequest(outputDir, name='Previous' + str(i) + prevFileName + '.jpg')
                 return key
-                # break
+
             else:
                 # loop continues
                 print("--Truck has different features, not the same truck!")
-        count += 1
+        count = key
+
     if not find:
         print("Truck ID needed to be generated")
         Count = backgroundSubtract(current_frame, previous_frame)  # Just to confirm before appending
@@ -76,14 +91,16 @@ def checkID(med, area, x1, y1, x2, y2, prevFileName, currFilename, current_frame
         if Count["white_pixel_count"] > config['whiteTHV']:
             # Confirm - Different Truck slided in
             print("--New Truck Confirmed by Background Subtraction")
+            _id = str(uuid.uuid4())
             dict1 = {
-                count: {'Area': area, 'Centroid': med, 'Coordinates': (x1, y1, x2, y2), 'Image_name': [currFilename]}}
-            print('ID: ', count)
+                _id: {'Area': area, 'Centroid': med, 'Coordinates': (x1, y1, x2, y2),
+                      'Image_name': [currFilename]}}
+            print('ID: ', _id)
             result.update(dict1)
-            return count
+            return _id
         else:
             print("--Same truck from previous frame, Just calculation error! No new ID created")
-            return 0
+            return count
 
 
 def area(x1, y1, x2, y2):
@@ -131,8 +148,7 @@ def backgroundSubtract(current_, previous_, ):
 
 def firstImage(prev):
     global outputDir
-    outputDir = os.path.join(execution_path, 'output', prev['fileName'])
-
+    print(outputDir)
     # startTime = time.time()
     ImageCopy = prev['frame'].copy()
     ImageCopy = cv2.rectangle(ImageCopy, (625, 93), (1745, 998), config['color3'], config['thickness'])
@@ -143,7 +159,7 @@ def firstImage(prev):
     if truck_coord_["Count"] <= 0:
         print("No trucks in first image")
         cv2.imwrite(outputDir + '/Current.jpg', ImageCopy)
-        shutil.rmtree(outputDir)
+        os.remove(outputDir + '/Current.jpg')
         return
 
     # for multiple trucks detected on first image
@@ -156,29 +172,35 @@ def firstImage(prev):
             if area(x1, y1, x2, y2) > config['maxTruckSize']:
                 # ImageCopy = cv2.rectangle(ImageCopy, (x1, y1), (x2, y2), config['color'], config['thickness'])
                 print("Truck found on first Image")
-                dict1 = {
-                    count: {'Area': area(x1, y1, x2, y2), 'Centroid': rectCentroid(x1, y1, x2, y2),
-                            'Coordinates': (x1, y1, x2, y2),
-                            'Image_name': [prev['fileName']]}}
-                print('ID: ', count)
-                result.update(dict1)
+
+                _id = str(uuid.uuid4())
 
                 currentCopy = ImageCopy.copy()
                 currentCopy = cv2.rectangle(currentCopy, (x1, y1), (x2, y2), config['color'], config['thickness'])
-                currentCopy = cv2.putText(currentCopy, count, (x1 + 10, y1 + 10), cv2.FONT_HERSHEY_SIMPLEX, 2,
-                                          config['color'], config['thickness'], cv2.LINE_AA)
+                # currentCopy = cv2.putText(currentCopy, count, (x1 + 10, y1 + 10), cv2.FONT_HERSHEY_SIMPLEX, 2,
+                #                           config['color'], config['thickness'], cv2.LINE_AA)
 
+                print(outputDir + '/Current' + str(count) + '.jpg')
                 cv2.imwrite(outputDir + '/Current' + str(count) + '.jpg', currentCopy)
                 currentPresigned_url = postRequest(outputDir, name='Current' + str(count) + '.jpg')
+                os.remove(outputDir + '/Current' + str(count) + '.jpg')
+
+                dict1 = {
+                    _id: {'Area': area(x1, y1, x2, y2), 'Centroid': rectCentroid(x1, y1, x2, y2),
+                          'Coordinates': (x1, y1, x2, y2),
+                          'Image_name': [prev['fileName']]}}
+                print('ID: ', _id)
+                result.update(dict1)
 
                 count += 1
-                Truckdata = {"TID": id, "Date": config['DateTime'].split("T")[0], "CAM": config["CAM"],
-                             "ROI": (config["minX"], config["minY"], config["maxX"], config["maxY"]),
-                             "CurrPresignedURL": currentPresigned_url,
-                             "BoundingArea": (x1, y1, x2, y2),
-                             "Time": (config['DateTime'].split("T")[1]).replace("_", ":")}
+                Truckdata = {"tid": _id,
+                             "dt": datetime.strptime(prev['fileName'], '%Y-%m-%dT%H_%M_%S'),
+                             "channel": config["CAM"],
+                             "roi": (config["minX"], config["minY"], config["maxX"], config["maxY"]),
+                             "curr_presigned_url": currentPresigned_url,
+                             "bounding_area": (x1, y1, x2, y2)
+                             }
                 print(Truckdata)
-    shutil.rmtree(outputDir)
 
 
 while True:
@@ -193,13 +215,13 @@ noneDetectedImages = []
 def Tracker(current_img, previous_img, actual):
     global outputDir, currentPresigned_url, previousPresigned_url
 
-    outputDir = os.path.join(execution_path, 'output', current_img['fileName'])
-
     ImageCopy = current_img['frame'].copy()  # To draw bounding boxes
     prevImageCopy = previous_img['frame'].copy()
 
-    ImageCopy = cv2.rectangle(ImageCopy, (config['minX'], config['minY']), (config['maxX'], config['maxY']), config['color3'], config['thickness'])
-    prevImageCopy = cv2.rectangle(prevImageCopy, (config['minX'], config['minY']), (config['maxX'], config['maxY']), config['color3'], config['thickness'])
+    ImageCopy = cv2.rectangle(ImageCopy, (config['minX'], config['minY']), (config['maxX'], config['maxY']),
+                              config['color3'], config['thickness'])
+    prevImageCopy = cv2.rectangle(prevImageCopy, (config['minX'], config['minY']), (config['maxX'], config['maxY']),
+                                  config['color3'], config['thickness'])
 
     # startTime = time.time()
     truck_coord_ = get_truck_detection(current_img['frame'])
@@ -219,38 +241,29 @@ def Tracker(current_img, previous_img, actual):
 
     for cords in truck_coord_['Co_Ordinates']:
         x1, y1, x2, y2 = cords
-        if config['minX'] < rectCentroid(x1, y1, x2, y2)[0] < config['maxX'] and config['minY'] < rectCentroid(x1, y1, x2, y2)[1] < config['maxY']:
+        if config['minX'] < rectCentroid(x1, y1, x2, y2)[0] < config['maxX'] and config['minY'] < \
+                rectCentroid(x1, y1, x2, y2)[1] < config['maxY']:
             if area(x1, y1, x2, y2) > config['maxTruckSize']:
                 current_frame = cropImg(current_img['frame'], x1, y1, x2, y2)
                 previous_frame = cropImg(previous_img['frame'], x1, y1, x2, y2)
 
-                id = checkID(rectCentroid(x1, y1, x2, y2), area(x1, y1, x2, y2), x1, y1, x2, y2,
-                             previous_img['fileName'],
-                             current_img['fileName'], current_frame, previous_frame, ImageCopy.copy(), prevImageCopy.copy())
+                id_ = checkID(rectCentroid(x1, y1, x2, y2), area(x1, y1, x2, y2), x1, y1, x2, y2,
+                              previous_img['fileName'],
+                              current_img['fileName'], current_frame, previous_frame, ImageCopy.copy(),
+                              prevImageCopy.copy())
 
-                Truckdata = {"TID": id, "Date": current_img['fileName'].split("T")[0], "CAM": config["CAM"],
-                             "ROI": (config["minX"], config["minY"], config["maxX"], config["maxY"]),
-                             "CurrPresignedURL": currentPresigned_url, "PrevPresignedURL": previousPresigned_url,
-                             "BoundingArea": (x1, y1, x2, y2),
-                             "Time": (current_img['fileName'].split("T")[1]).replace("_", ":")
-                             }
+                Truckdata = {
+                    "tid": id_,
+                    "dt": datetime.strptime(current_img['fileName'], '%Y-%m-%dT%H_%M_%S'),
+                    "channel": config["CAM"],
+                    "roi": (config["minX"], config["minY"], config["maxX"], config["maxY"]),
+                    "curr_presigned_url": currentPresigned_url,
+                    "PrevPresignedURL": previousPresigned_url,
+                    "bounding_area": (x1, y1, x2, y2)
+                }
 
                 print(Truckdata)
                 post_id = mongo_coll.insert_one(Truckdata).inserted_id
                 print(post_id)
         i += 1
     print("Result", result)
-    shutil.rmtree(outputDir)
-
-
-
-# Constraints of Project:
-#     First occurrence of the truck must be detected else the truck would never get an ID
-#     If area centroid doesn't match and bgSubtraction error is less than threshold then error in passing the truck ID
-#     Day-Night lightening condition error
-
-
-# Solution
-#     Improve Truck detection algorithm
-#     Maintain dict of all truck objects detected and match with them, instead of just storing previous image values
-#     None

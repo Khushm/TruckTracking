@@ -38,13 +38,9 @@ for i in data['TruckTrack']:
                 continue
 
             filePath = os.path.join(outputDir, fileName)
-            if not os.path.exists(filePath):
-                os.mkdir(filePath)
-
             currentImg = {'frame': cv2.imread(os.path.join(path, each_files)), 'fileName': fileName}
 
             Tracker(currentImg, previousImg, i)
-
             print('------------------------------------')
             previousImg = currentImg
 file.close()
