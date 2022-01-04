@@ -1,4 +1,5 @@
 .idea/
 models
 input_dir/
-utils/object_detection/PaddleDetection/
+#utils/object_detection/PaddleDetection/
+.evn
