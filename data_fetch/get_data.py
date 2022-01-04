@@ -20,7 +20,7 @@ def argsparser():
     parser.add_argument(
         "--time",
         type=datetime,
-        default=datetime.now() - timedelta(3),
+        default=datetime.now() - timedelta(4),
         help="Get current datetime, to process previous day images"
     )
     parser.add_argument(
