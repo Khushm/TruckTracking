@@ -1,4 +1,4 @@
-from utils.object_detection.PaddleDetection.tools.infer import main
+from utils.object_detection.PaddleDetection_.tools.infer import main
 import cv2
 import argparse
 import os

@@ -8,7 +8,7 @@ def update_data(link, online_ids, startX, startY, endX, endY, confidence):
     try:
         # logger.info(online_ids)
         Truckdata = {
-            "tid": online_ids,
+            "_tid": online_ids,
             "bounding_area": (startX, startY, endX, endY),
             "confidence": confidence
         }
