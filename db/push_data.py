@@ -12,8 +12,11 @@ def update_data(link, online_ids, startX, startY, endX, endY, confidence):
             "bounding_area": (startX, startY, endX, endY),
             "confidence": confidence
         }
-        link['prev_mongo_id'] = link['_id']
-        del link['_id']
+        try:
+            link['prev_mongo_id'] = link['_id']
+            del link['_id']
+        except Exception as e:
+            pass
         Truckdata.update(link)
         post_id = mongo_coll.insert_one(Truckdata)
         # post_id = mongo_coll.insert_one(Truckdata).inserted_id
