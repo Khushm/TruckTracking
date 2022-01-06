@@ -92,7 +92,6 @@ def get_data(ch: int = 0):
         parser = argsparser()
         args = parser.parse_args()
         # processing on previous day frames
-        print_arguments(args=args)
         query = {
             "time_intervals": [
                 {
@@ -104,9 +103,8 @@ def get_data(ch: int = 0):
         }
         response = requests.post(args.api_request, json=query)
         data = response.json()['data']
-
         args.channel_no = ch
-
+        print_arguments(args=args)
         # filtering input for one particular channel
         for item in data:
             if item['channel_no'] == args.channel_no:

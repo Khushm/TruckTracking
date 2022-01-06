@@ -21,7 +21,7 @@ class Camera:
             self.image_data = []
             self.uuid_mapping = dict()
             self.ch = ch
-            self.image_data, self.frame_link = get_data(ch)
+            self.image_data, self.frame_link = get_data(self.ch)
             self.execution_path = os.getcwd()
 
             if not os.path.exists(os.path.join(self.execution_path, 'input_dir', str(self.ch))):
