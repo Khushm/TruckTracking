@@ -19,7 +19,7 @@ def update_data(link, online_ids, startX, startY, endX, endY, confidence):
         Truckdata.update(link)
         post_id = mongo_coll.insert_one(Truckdata)
         # post_id = mongo_coll.insert_one(Truckdata).inserted_id
-        logger.info(post_id)
+        # logger.info("Data Inserted!")
     except Exception as e:
         logger.error("Error in dumping data | {}".format(e))
 

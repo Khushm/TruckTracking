@@ -609,7 +609,7 @@ class Trainer(object):
                 self.model,
                 os.path.join(save_dir, 'model'),
                 input_spec=pruned_input_spec)
-        logger.info("Export model and saved in {}".format(save_dir))
+        # logger.info("Export model and saved in {}".format(save_dir))
 
     def post_quant(self, output_dir='output_inference'):
         model_name = os.path.splitext(os.path.split(self.cfg.filename)[-1])[0]
@@ -630,7 +630,7 @@ class Trainer(object):
             self.model,
             os.path.join(save_dir, 'model'),
             input_spec=pruned_input_spec)
-        logger.info("Export Post-Quant model and saved in {}".format(save_dir))
+        # logger.info("Export Post-Quant model and saved in {}".format(save_dir))
 
     def _flops(self, loader):
         self.model.eval()
@@ -654,5 +654,5 @@ class Trainer(object):
             "scale_factor": input_data['scale_factor'][0].unsqueeze(0)
         }]
         flops = flops(self.model, input_spec) / (1000 ** 3)
-        logger.info(" Model FLOPs : {:.6f}G. (image shape is {})".format(
-            flops, input_data['image'][0].unsqueeze(0).shape))
+        # logger.info(" Model FLOPs : {:.6f}G. (image shape is {})".format(
+        #     flops, input_data['image'][0].unsqueeze(0).shape))
