@@ -70,7 +70,7 @@ class Camera:
                 self.subdets, frame = self.detector.pp_infer_image_path(self.infer_img_path, frame)
                 self.online_ids = self.tracker.infer(self.subdets, frame, self.frame_counter)
                 # print('_________________')
-                logger.info(self.online_ids)
+                # logger.info(self.online_ids)
                 if len(self.subdets) > 0:
                     for i in range(len(self.subdets)):
                         self.startX, self.startY, self.endX, self.endY, self.confidence = self.subdets[i]
