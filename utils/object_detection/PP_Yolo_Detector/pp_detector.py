@@ -1,48 +1,55 @@
 from loguru import logger
 import paddle
+from os import getenv
 import os
 from ppdet.slim import build_slim_model
 from ppdet.core.workspace import load_config, merge_config
 from ppdet.utils.check import check_gpu, check_npu, check_version, check_config
-from utils.object_detection.PP_Yolo_Detector.detector_utils.args import parse_args
 from utils.object_detection.PP_Yolo_Detector.detector_utils.trainer import Trainer
 
 
 class PP_Detector:
-    def __init__(self, infer_img_path=''):
+    def __init__(self):
         try:
-            self.infer_img_path = infer_img_path
+            self.infer_img_path = ''
             self.infer_weights = os.path.join(os.getcwd(), 'models', 'ppyolo_r50vd_dcn_1x_coco.pdparams')
-            # self.infer_weights = 'https://paddledet.bj.bcebos.com/models/ppyolo_r50vd_dcn_1x_coco.pdparams'
-            self.FLAGS = parse_args(self.infer_img_path)
-            self.cfg = load_config(self.FLAGS.config)
-            self.cfg['use_vdl'] = self.FLAGS.use_vdl
-            self.cfg['vdl_log_dir'] = self.FLAGS.vdl_log_dir
-            merge_config(self.FLAGS.opt)
+            self.use_vdl = False
+            self.vdl_log_dir = "vdl_log_dir/image"
+            self.opt = {}
+            self.config = 'configs/ppyolo/ppyolo_r50vd_dcn_1x_coco.yml'
+            self.slim_config = ''
 
-            self.cfg.use_npu = False
-            self.cfg.use_gpu = False
+            self.cfg = load_config(self.config)
+            self.cfg['use_vdl'] = self.use_vdl
+            self.cfg['vdl_log_dir'] = self.vdl_log_dir
+            merge_config(self.opt)
+            self.cfg['use_npu'] = False
 
-            self.place = paddle.set_device('cpu')
+            if getenv("DEVICE") == 'cpu':
+                self.cfg['use_gpu'] = False
+            else:
+                self.cfg['use_gpu'] = True
 
-            if 'norm_type' in self.cfg and self.cfg['norm_type'] == 'sync_bn' and not self.cfg.use_gpu:
+            self.place = paddle.set_device(getenv("DEVICE"))
+
+            if 'norm_type' in self.cfg and self.cfg['norm_type'] == 'sync_bn' and not self.cfg['use_gpu']:
                 self.cfg['norm_type'] = 'bn'
 
-            if self.FLAGS.slim_config:
-                cfg = build_slim_model(self.cfg, self.FLAGS.slim_config, mode='test')
+            if self.slim_config:
+                self.cfg = build_slim_model(self.cfg, self.slim_config, mode='test')
 
             check_config(self.cfg)
-            check_gpu(self.cfg.use_gpu)
-            check_npu(self.cfg.use_npu)
+            check_gpu(self.cfg['use_gpu'])
+            check_npu(self.cfg['use_npu'])
             check_version()
 
-            # # build trainer
+            # build trainer
             self.trainer = Trainer(self.cfg, mode='test')
 
             # load weights
             self.trainer.load_weights(self.infer_weights)
 
-            logger.info('Initialised PP_Detection successfully.')
+            # logger.info('Initialised PP_Detection successfully.')
 
         except Exception as e:
             logger.info(f'Error initialising PP Detector: {e}')
@@ -56,7 +63,9 @@ class PP_Detector:
 
             if len(self.boxes) > 0:
                 for i in range(len(self.classids)):
-                    if self.classids[i] != 'truck':
+                    if getenv("OBJECT") == 'all':
+                        pass
+                    elif self.classids[i] != getenv("OBJECT"):
                         continue
                     self.x, self.y, self.w, self.h = self.boxes[i]
 

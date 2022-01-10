@@ -12,35 +12,11 @@ import argparse
 
 ssl._create_default_https_context = ssl._create_unverified_context
 
+api_request_link = "https://api.smart-iam.com/api/image-store/metadata-v2"
 
-def argsparser():
-    parser = argparse.ArgumentParser(description='Set some constants')
-    parser.add_argument("--panel_no", type=int, default=500003, help="Set panel number")
-    parser.add_argument("--channel_no", type=int, default=5, help="Set channel number")
-    parser.add_argument(
-        "--time",
-        type=datetime,
-        default=datetime.now() - timedelta(5),
-        help="Get current datetime, to process previous day images"
-    )
-    parser.add_argument(
-        "--api_request",
-        default="https://api.smart-iam.com/api/image-store/metadata-v2",
-        help="Link to post API, request to get query response"
-    )
-    parser.add_argument(
-        "--start_time",
-        type=str,
-        default="00:01:00.364Z",
-        help="choose the time, to start the process"
-    )
-    parser.add_argument(
-        "--end_time",
-        type=str,
-        default="11:59:00.364Z",
-        help="choose the time, to end the process"
-    )
-    return parser
+# List of all the frames between start and end time
+final_data = []
+valid_link = []
 
 
 def url_image_converter(data):
@@ -69,48 +45,29 @@ def url_image_converter(data):
         logger.debug('Error in Converting Url to Image:{}'.format(e))
 
 
-# converting datetime object to given sting format
-def time_string(date, time):
-    return date.strftime("%Y-%m-%dT") + time
-
-
-# print parsed arguments
-def print_arguments(args):
-    for arg, value in sorted(vars(args).items()):
-        print('%s: %s' % (arg, value))
-    print('------------------------------------------')
-
-
-# List of all the frames between start and end time
-final_data = []
-valid_link = []
-
-
 # post api request and return the list of all valid frames
-def get_data(ch: int = 0):
+def get_data(camera_no, from_time, to_time, panel_no, ai_id=1):
     try:
-        parser = argsparser()
-        args = parser.parse_args()
         # processing on previous day frames
         query = {
             "time_intervals": [
                 {
-                    "start": time_string(args.time - timedelta(1), time=args.start_time),
-                    "end": time_string(args.time - timedelta(1), time=args.end_time)
+                    "start": from_time,
+                    "end": to_time
                 }
             ],
-            "panel_no": args.panel_no
+            "panel_no": panel_no
         }
-        response = requests.post(args.api_request, json=query)
+        response = requests.post(api_request_link, json=query)
         data = response.json()['data']
-        args.channel_no = ch
-        print_arguments(args=args)
+
         # filtering input for one particular channel
         for item in data:
-            if item['channel_no'] == args.channel_no:
+            if item['channel_no'] == camera_no:
+            # if item['channel_no'] == camera_no and item['ai_id'] == ai_id:
                 final_data.append(url_image_converter(item))
                 valid_link.append(item)
         logger.info('Length of valid images - {}'.format(len(final_data)))
         return final_data, valid_link
     except Exception as e:
-        logger.error('ERROR | {}'.format(e))
+        logger.error('Error in fetching data | {}'.format(e))

@@ -44,46 +44,6 @@ class ColorTTY(object):
         return "[{}m{}[0m".format(code, message)
 
 
-class ArgsParser(ArgumentParser):
-    def __init__(self):
-        super(ArgsParser, self).__init__(
-            formatter_class=RawDescriptionHelpFormatter)
-        self.add_argument("-c", "--config",
-                          default=os.path.join(os.getcwd(), 'configs/ppyolo/ppyolo_r50vd_dcn_1x_coco.yml'),
-                          help="configuration file to use")
-        self.add_argument(
-            "-o", "--opt", nargs='*', help="set configuration options")
-
-    def parse_args(self, argv=None):
-        args = super(ArgsParser, self).parse_args(argv)
-        assert args.config is not None, \
-            "Please specify --config=configure_file_path."
-        args.opt = self._parse_opt(args.opt)
-        return args
-
-    def _parse_opt(self, opts):
-        config = {}
-        if not opts:
-            return config
-        for s in opts:
-            s = s.strip()
-            k, v = s.split('=', 1)
-            if '.' not in k:
-                config[k] = yaml.load(v, Loader=yaml.Loader)
-            else:
-                keys = k.split('.')
-                if keys[0] not in config:
-                    config[keys[0]] = {}
-                cur = config[keys[0]]
-                for idx, key in enumerate(keys[1:]):
-                    if idx == len(keys) - 2:
-                        cur[key] = yaml.load(v, Loader=yaml.Loader)
-                    else:
-                        cur[key] = {}
-                        cur = cur[key]
-        return config
-
-
 def print_total_cfg(config):
     modules = get_registered_modules()
     color_tty = ColorTTY()

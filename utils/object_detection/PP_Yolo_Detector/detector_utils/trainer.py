@@ -52,29 +52,7 @@ class Trainer(object):
         self.optimizer = None
         self.is_loaded_weights = False
 
-        # build data loader
-        if cfg.architecture in MOT_ARCH and self.mode in ['eval', 'test']:
-            self.dataset = cfg['{}MOTDataset'.format(self.mode.capitalize())]
-        else:
-            self.dataset = cfg['{}Dataset'.format(self.mode.capitalize())]
-
-        if cfg.architecture == 'DeepSORT' and self.mode == 'train':
-            logger.error('DeepSORT has no need of training on mot datasets.')
-            sys.exit(1)
-
-        if self.mode == 'train':
-            self.loader = create('{}Reader'.format(self.mode.capitalize()))(
-                self.dataset, cfg.worker_num)
-
-        if cfg.architecture == 'JDE' and self.mode == 'train':
-            cfg['JDEEmbeddingHead'][
-                'num_identities'] = self.dataset.num_identities_dict[0]
-            # JDE only support single class MOT now.
-
-        if cfg.architecture == 'FairMOT' and self.mode == 'train':
-            cfg['FairMOTEmbeddingHead'][
-                'num_identities_dict'] = self.dataset.num_identities_dict
-            # FairMOT support single class and multi-class MOT now.
+        self.dataset = cfg['{}Dataset'.format(self.mode.capitalize())]
 
         # build model
         if 'model' not in self.cfg:
@@ -96,21 +74,6 @@ class Trainer(object):
                 use_thres_step=True,
                 cycle_epoch=cycle_epoch)
 
-        # EvalDataset build with BatchSampler to evaluate in single device
-        #
-        if self.mode == 'eval':
-            self._eval_batch_sampler = paddle.io.BatchSampler(
-                self.dataset, batch_size=self.cfg.EvalReader['batch_size'])
-            self.loader = create('{}Reader'.format(self.mode.capitalize()))(
-                self.dataset, cfg.worker_num, self._eval_batch_sampler)
-        # TestDataset build after user set images, skip loader creation here
-
-        # build optimizer in train mode
-        if self.mode == 'train':
-            steps_per_epoch = len(self.loader)
-            self.lr = create('LearningRate')(steps_per_epoch)
-            self.optimizer = create('OptimizerBuilder')(self.lr, self.model)
-
         if self.cfg.get('unstructured_prune'):
             self.pruner = create('UnstructuredPruner')(self.model,
                                                        steps_per_epoch)
@@ -131,19 +94,7 @@ class Trainer(object):
         self._reset_metrics()
 
     def _init_callbacks(self):
-        if self.mode == 'train':
-            self._callbacks = [LogPrinter(self), Checkpointer(self)]
-            if self.cfg.get('use_vdl', False):
-                self._callbacks.append(VisualDLWriter(self))
-            if self.cfg.get('save_proposals', False):
-                self._callbacks.append(SniperProposalsGenerator(self))
-            self._compose_callback = ComposeCallback(self._callbacks)
-        elif self.mode == 'eval':
-            self._callbacks = [LogPrinter(self)]
-            if self.cfg.metric == 'WiderFace':
-                self._callbacks.append(WiferFaceEval(self))
-            self._compose_callback = ComposeCallback(self._callbacks)
-        elif self.mode == 'test' and self.cfg.get('use_vdl', False):
+        if self.mode == 'test' and self.cfg.get('use_vdl', False):
             self._callbacks = [VisualDLWriter(self)]
             self._compose_callback = ComposeCallback(self._callbacks)
         else:
@@ -547,8 +498,7 @@ class Trainer(object):
                     self._compose_callback.on_step_end(self.status)
                 # save image with detection
                 save_name = self._get_save_image_name(output_dir, image_path)
-                logger.info("Detection bbox results save in {}".format(
-                    save_name))
+
                 image.save(save_name, quality=95)
                 if save_txt:
                     save_path = os.path.splitext(save_name)[0] + '.txt'
