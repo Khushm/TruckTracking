@@ -48,6 +48,7 @@ def url_image_converter(data):
 # post api request and return the list of all valid frames
 def get_data(camera_no, from_time, to_time, panel_no, ai_id=1):
     try:
+        final_data = []
         # processing on previous day frames
         query = {
             "time_intervals": [
