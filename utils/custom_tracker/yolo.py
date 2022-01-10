@@ -1,9 +1,9 @@
-import logger
 import numpy as np
 import cv2 as cv
 import time
 import os
 import json
+from loguru import logger
 
 
 def plot_tracking(image, tlwhs, obj_ids, frame_id=0, fps=0., ids2=None):
@@ -40,11 +40,6 @@ def plot_tracking(image, tlwhs, obj_ids, frame_id=0, fps=0., ids2=None):
         return id_text, im
     except Exception as e:
         logger.error("Error in plot_tracking | {}".format(e))
-
-
-def show_image(img):
-    cv.imshow("Image", img)
-    cv.waitKey(0)
 
 
 def draw_labels_and_boxes(img, boxes, confidences, classids, idxs, colors, labels):
