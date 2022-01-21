@@ -6,4 +6,5 @@ utils/object_detection/PaddleDetection/data/
 output/
 .env
 data_fetch/args_get_data.py
+configs/
 
