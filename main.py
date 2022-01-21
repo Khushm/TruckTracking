@@ -7,11 +7,11 @@ from datetime import datetime
 from db.mongoConn import get_mongo_client, load_meta_data
 from os import getenv
 from data_fetch.get_data import process_data
-from db.mongoConn import MongoDB
 
 coll = getenv("MONGO_COLLECTION_PRIMARY")  # db to load infer images
 coll_sec = getenv("MONGO_COLLECTION_SEC")  # db to push results
 meta_coll = getenv("MONGO_COLLECTION_META")  # db to load metadata
+
 
 # load and process cam, panel from meta db & to-from date from environment variable
 def run():
@@ -33,7 +33,7 @@ def run():
             # process_data(db_object, from_dt, to_dt, cam, panel, i)
             logger.info("Total time taken to infer image: {} CAM: {} Panel: {}".format(time.time() - start, cam, panel))
         logger.info("Completed!")
-        get_mongo_client(dbClose=True)
+
         # db_object.close_connection()
     # close connection
     except Exception as e:
