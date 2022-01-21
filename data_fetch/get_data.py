@@ -78,7 +78,7 @@ def process_data(coll, dump_col, from_time, to_time, camera, panel, _id):
                     main_dets.append(sub_dets)
 
             online_ids = tracker[_id].infer(main_dets, url_image_converter(data), ix)
-            print(data['get_presignedUrl'], online_ids)
+            # print(data['get_presignedUrl'], online_ids)
             for _ in range(len(online_ids)):
                 if online_ids[_] not in _id_uuid_mapping.keys():
                     generate_uuid = str(uuid.uuid4())
