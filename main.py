@@ -8,9 +8,9 @@ from db.mongoConn import get_mongo_client, load_meta_data
 from os import getenv
 from data_fetch.get_data import process_data
 
-coll = getenv("MONGO_COLLECTION_PRIMARY")       # db to load infer images
-coll_sec = getenv("MONGO_COLLECTION_SEC")       # db to push results
-meta_coll = getenv("MONGO_COLLECTION_META")     # db to load metadata
+coll = getenv("MONGO_COLLECTION_PRIMARY")  # db to load infer images
+coll_sec = getenv("MONGO_COLLECTION_SEC")  # db to push results
+meta_coll = getenv("MONGO_COLLECTION_META")  # db to load metadata
 
 
 # load and process cam, panel from meta db & to-from date from environment variable
@@ -27,7 +27,7 @@ def run():
             cam = data['channel_no']
             panel = data['panel_no']
             process_data(db[coll], db[coll_sec], from_dt, to_dt, cam, panel, i)
-            logger.info("Total time taken to infer image: {}".format(time.time() - start))
+            logger.info("Total time taken to infer image: {} CAM: {} Panel: {}".format(time.time() - start, cam, panel))
         logger.info("Completed!")
 
     # close connection
@@ -44,3 +44,9 @@ if __name__ == "__main__":
 
 # sudo docker run -dt --gpus all --env-file ./.env --name truck_tracker truck_tracking:0.3
 # sudo docker build -t truck_tracking:0.3 .
+
+# 21 Jan'22
+# docker container logs tracker
+# docker rm tracker
+# docker run -dt --env-file ./.env --name tracker tracker:v18
+# docker build -t tracker:v18 .
