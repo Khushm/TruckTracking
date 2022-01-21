@@ -7,32 +7,22 @@ user = getenv("MONGO_USERNAME_PRIMARY")
 password = getenv("MONGO_PASSWORD_PRIMARY")
 host = str(getenv("MONGO_HOST_PRIMARY"))
 db = getenv("MONGO_DATABASE_PRIMARY")
-
 MONGO_URL = "mongodb://%s:%s@%s" % (quote_plus(user), quote_plus(password), host)
 
 
+# connect to db
 def get_mongo_client():
     try:
         mongo_client = MongoClient(MONGO_URL)
-        # return mongo_client
         mongo_client.admin.authenticate(user, password)
         database = mongo_client[db]
         return database
-        # collection = database[coll]
-        # meta_collection = database[meta_coll]
-        # push_data_collection = database[coll_sec]
-        # return collection, meta_collection, push_data_collection
     except Exception as e:
         logger.debug(f'Error while Connecting to Mongo Client: | Error:{e}')
         raise e
 
 
-
-    # db = get_mongo_client()
-    # if mongo_coll_ret and meta_collection and push_data_collection:
-    #     logger.info("Connected to MongoDB successfully.")
-
-
+# fetch images between given from-to date_time
 def fetch_data(data_col, from_dt, to_dt, camera, panel):
     try:
         meta_data_dict_ret = data_col.find({
@@ -49,6 +39,7 @@ def fetch_data(data_col, from_dt, to_dt, camera, panel):
         logger.error(e)
 
 
+# load meta data of particular id
 def load_meta_data(meta_data_col, ai_id=4):
     try:
         meta_data_dict_ret = meta_data_col.find({
@@ -59,6 +50,7 @@ def load_meta_data(meta_data_col, ai_id=4):
         logger.error(e)
 
 
+# push results back to db
 def push_data(mongo_coll, online_ids, data):
     try:
         try:

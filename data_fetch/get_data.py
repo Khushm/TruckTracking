@@ -53,6 +53,10 @@ def url_image_converter(data):
         logger.debug('Error in Converting Url to Image:{}'.format(e))
 
 
+# load images
+# apply tracker if truck is detected else skip
+# map id with uuid
+#
 def process_data(coll, dump_col, from_time, to_time, camera, panel, _id):
     try:
         tracker[_id] = Tracker()
