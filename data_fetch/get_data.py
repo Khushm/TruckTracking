@@ -56,8 +56,8 @@ def url_image_converter(data):
 # load images
 # apply tracker if truck is detected else skip
 # map id with uuid
-#
 def process_data(coll, dump_col, from_time, to_time, camera, panel, _id):
+# def process_data(db_object, from_time, to_time, camera, panel, _id):
     try:
         tracker[_id] = Tracker()
         _id_uuid_mapping = dict()

@@ -3,16 +3,17 @@ from loguru import logger
 from os import getenv
 from urllib.parse import quote_plus
 
+
 user = getenv("MONGO_USERNAME_PRIMARY")
 password = getenv("MONGO_PASSWORD_PRIMARY")
 host = str(getenv("MONGO_HOST_PRIMARY"))
 db = getenv("MONGO_DATABASE_PRIMARY")
 MONGO_URL = "mongodb://%s:%s@%s" % (quote_plus(user), quote_plus(password), host)
-
-
+mongo_client = None
 # connect to db
 def get_mongo_client():
     try:
+        global mongo_client
         mongo_client = MongoClient(MONGO_URL)
         mongo_client.admin.authenticate(user, password)
         database = mongo_client[db]
@@ -20,6 +21,14 @@ def get_mongo_client():
     except Exception as e:
         logger.debug(f'Error while Connecting to Mongo Client: | Error:{e}')
         raise e
+
+
+def close_connection():
+    global mongo_client
+    if mongo_client is not None:
+        mongo_client.close()
+    else:
+        pass
 
 
 # fetch images between given from-to date_time
