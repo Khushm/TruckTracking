@@ -14,7 +14,6 @@ from db.mongoConn import fetch_data, push_data
 from utils.custom_tracker.byte_tracker_main import Tracker
 
 ssl._create_default_https_context = ssl._create_unverified_context
-
 api_request_link = "https://api.smart-iam.com/api/image-store/metadata-v2"
 
 # List of all the frames between start and end time
