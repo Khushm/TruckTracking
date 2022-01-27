@@ -77,6 +77,8 @@ def push_data(online_ids, data):
         try:
             data['prev_mongo_id'] = data['_id']
             del data['_id']
+            data['datetime_local'] = datetime.strptime(data['datetime_local'], "%Y-%m-%dT%H:%M:%S.364Z")
+
         except:
             pass
         temp = {}
