@@ -2,7 +2,7 @@ import time
 from loguru import logger
 import argparse
 import numpy as np
-from db.mongoConn import get_mongo_client, load_meta_data, close_connection
+from db.mongoConn import get_mongo_client, load_meta_data, close_connection, get_mongo_client_prod
 from data_fetch.get_data import process_data
 
 
@@ -10,6 +10,7 @@ from data_fetch.get_data import process_data
 def run():
     try:
         get_mongo_client()
+        get_mongo_client_prod()
         meta_col = load_meta_data()
 
         for i, data in enumerate(meta_col):

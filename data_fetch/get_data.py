@@ -70,7 +70,10 @@ def process_data(camera, panel, _id):
                 continue
             for i in data['objects']:
                 if i['name'] == 'truck':
+                    # if (sub_dets[2]-sub_dets[0]) * (sub_dets[3]-sub_dets[1]) < 90000:
+                    #     continue
                     sub_dets = i['box_points'].copy()
+
                     sub_dets.append(i['percentage_probability']*0.01)
                     main_dets.append(sub_dets)
 
@@ -80,6 +83,9 @@ def process_data(camera, panel, _id):
                 if online_ids[_] not in _id_uuid_mapping.keys():
                     generate_uuid = str(uuid.uuid4())
                     _id_uuid_mapping[online_ids[_]] = generate_uuid
-                push_data(_id_uuid_mapping[online_ids[_]], data)
+
+                    object_list = [{'name': 'truck', 'box_points': main_dets[_][0:4]}]
+
+                    push_data(_id_uuid_mapping[online_ids[_]], data, object_list)
     except Exception as e:
         logger.error('Error in fetching data | {}'.format(e))

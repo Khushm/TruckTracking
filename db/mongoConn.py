@@ -8,9 +8,17 @@ user = getenv("MONGO_USERNAME_PRIMARY")
 password = getenv("MONGO_PASSWORD_PRIMARY")
 host = str(getenv("MONGO_HOST_PRIMARY"))
 db = getenv("MONGO_DATABASE_PRIMARY")
-coll = getenv("MONGO_COLLECTION_PRIMARY")  # db to load infer images
+# coll = getenv("MONGO_COLLECTION_PRIMARY")  # db to load infer images
 coll_sec = getenv("MONGO_COLLECTION_SEC")  # db to push results
 meta_coll = getenv("MONGO_COLLECTION_META")  # db to load metadata
+
+user_p = getenv("MONGO_USERNAME_PROD")
+password_p = getenv("MONGO_PASSWORD_PROD")
+host_p = str(getenv("MONGO_HOST_PROD"))
+db_p = getenv("MONGO_DATABASE_PROD")
+coll_p = getenv("MONGO_COLLECTION_PROD")
+
+MONGO_URL_PROD = "mongodb://%s:%s@%s" % (quote_plus(user_p), quote_plus(password_p), host_p)
 MONGO_URL = "mongodb://%s:%s@%s" % (quote_plus(user), quote_plus(password), host)
 mongo_client = None
 infer_images_collection = None
@@ -27,7 +35,19 @@ def get_mongo_client():
         database = mongo_client[db]
         metadata_collection = database[meta_coll]
         result_collection = database[coll_sec]
-        infer_images_collection = database[coll]
+        # infer_images_collection = database[coll]
+    except Exception as e:
+        logger.debug(f'Error while Connecting to Mongo Client: | Error:{e}')
+        raise e
+
+
+def get_mongo_client_prod():
+    try:
+        global mongo_client_prod, infer_images_collection
+        mongo_client_prod = MongoClient(MONGO_URL_PROD)
+        mongo_client_prod.admin.authenticate(user_p, password_p)
+        database = mongo_client_prod[db_p]
+        infer_images_collection = database[coll_p]
     except Exception as e:
         logger.debug(f'Error while Connecting to Mongo Client: | Error:{e}')
         raise e
@@ -71,7 +91,7 @@ def load_meta_data(ai_id=4):
 
 
 # push results back to db
-def push_data(online_ids, data):
+def push_data(online_ids, data, object_list):
     try:
         global result_collection
         try:
@@ -83,8 +103,9 @@ def push_data(online_ids, data):
             pass
         temp = {}
         temp['_uuid'] = online_ids
+        temp['truck_list'] = object_list
         data.update(temp)
-
+        # data.update(object_list)
         post_id = result_collection.insert_one(data)
 
         # post_id = mongo_coll.insert_one(Truckdata).inserted_id
