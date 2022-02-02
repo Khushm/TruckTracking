@@ -86,6 +86,6 @@ def process_data(camera, panel, _id):
 
                     object_list = [{'name': 'truck', 'box_points': main_dets[_][0:4]}]
 
-                    push_data(_id_uuid_mapping[online_ids[_]], data, object_list)
+                push_data(_id_uuid_mapping[online_ids[_]], data, object_list)
     except Exception as e:
         logger.error('Error in fetching data | {}'.format(e))
