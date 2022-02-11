@@ -8,7 +8,6 @@ user = getenv("MONGO_USERNAME_PRIMARY")
 password = getenv("MONGO_PASSWORD_PRIMARY")
 host = str(getenv("MONGO_HOST_PRIMARY"))
 db = getenv("MONGO_DATABASE_PRIMARY")
-# coll = getenv("MONGO_COLLECTION_PRIMARY")  # db to load infer images
 coll_sec = getenv("MONGO_COLLECTION_SEC")  # db to push results
 meta_coll = getenv("MONGO_COLLECTION_META")  # db to load metadata
 

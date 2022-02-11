@@ -4,6 +4,7 @@ from utils.custom_tracker.yolo import *
 from loguru import logger
 from utils.custom_tracker.timer import Timer
 from utils.custom_tracker.custom_tracker.byte_tracker import BYTETracker
+# from utils.custom_tracker.custom_tracker.mot_tracker import OnlineTracker
 import numpy as np
 
 
@@ -30,7 +31,7 @@ class Tracker:
         except Exception as e:
             logger.error("Error in initialising Tracker | {}".format(e))
 
-    def infer(self, sub_dets, frame, frame_counter):
+    def infer(self, cam, sub_dets, frame, frame_counter):
         try:
             self.sub_dets = sub_dets
             if len(self.sub_dets) == 0:
@@ -62,11 +63,11 @@ class Tracker:
             self.results.append((self.frame_counter, self.online_tlwhs, self.online_ids, self.online_scores))
             self.timer.toc()
             self.frame_id = self.frame_counter
-            self._id, self.frame = plot_tracking(self.frame, self.online_tlwhs, self.online_ids, self.frame_id,
+            self._id, self.frame1 = plot_tracking(cam, self.frame, self.online_tlwhs, self.online_ids, self.frame_id,
                                                  self.fps / self.timer.average_time)
 
             # print("ID: ", self._id)
 
-            return self.online_ids
+            return self.results, self.frame
         except Exception as e:
             logger.error("Error in tracker infer | {}".format(e))

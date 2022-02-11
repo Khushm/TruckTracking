@@ -169,7 +169,7 @@ def fuse_iou(cost_matrix, tracks, detections):
     det_scores = np.array([det.score for det in detections])
     det_scores = np.expand_dims(det_scores, axis=0).repeat(cost_matrix.shape[0], axis=0)
     # uncommented fuse_sim
-    # fuse_sim = fuse_sim * (1 + det_scores) / 2
+    fuse_sim = fuse_sim * (1 + det_scores) / 2
     fuse_cost = 1 - fuse_sim
     return fuse_cost
 

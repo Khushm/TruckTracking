@@ -6,7 +6,7 @@ import json
 from loguru import logger
 
 
-def plot_tracking(image, tlwhs, obj_ids, frame_id=0, fps=0., ids2=None):
+def plot_tracking(cam, image, tlwhs, obj_ids, frame_id=0, fps=0., ids2=None):
     try:
         im = np.ascontiguousarray(np.copy(image))
         im_h, im_w = im.shape[:2]
@@ -27,11 +27,12 @@ def plot_tracking(image, tlwhs, obj_ids, frame_id=0, fps=0., ids2=None):
             id_text = '{}'.format(int(obj_id))
             if ids2 is not None:
                 id_text = id_text + ', {}'.format(int(ids2[i]))
-            cv.rectangle(im, intbox[0:2], intbox[2:4],
-                         color=(255, 0, 0), thickness=line_thickness)
-            cv.putText(im, id_text, (intbox[0], intbox[1]), cv.FONT_HERSHEY_PLAIN, text_scale, (0, 255, 0),
-                       thickness=text_thickness)
-            # cv.imwrite(f'frame_{id_text}_{frame_id}.jpg', im)
+
+            # cv.rectangle(im, intbox[0:2], intbox[2:4],
+            #              color=(255, 0, 0), thickness=line_thickness)
+            # cv.putText(im, id_text, (intbox[0], intbox[1]), cv.FONT_HERSHEY_PLAIN, text_scale, (0, 255, 0),
+            #            thickness=text_thickness)
+            # cv.imwrite(os.path.join('output', f'{cam}_frame_{id_text}_{frame_id}.jpg'), im)
             # os.remove(f'frame_{self._id}_{self.frame_id}.jpg')
         return id_text, im
     except Exception as e:

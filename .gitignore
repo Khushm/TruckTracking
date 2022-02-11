@@ -1,10 +1,13 @@
 .idea/
-models/
-input_dir/
-utils/object_detection/PaddleDetection/output/
-utils/object_detection/PaddleDetection/data/
-output/
 .env
-data_fetch/args_get_data.py
-configs/
-
+./utils/nms/
+#./utils/custom_tracker/custom_tracker/mot_tracking
+# Image Folders
+25/
+26/
+27/
+28/
+29/
+30/
+31/
+output/

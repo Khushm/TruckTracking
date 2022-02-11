@@ -151,8 +151,9 @@ class BYTETracker(object):
         self.track_thresh = 0.4
         self.track_buffer = 10
         self.mot20 = False
-        self.match_thresh = 0.8
+        self.match_thresh = 0.9
         self.frame_id = 0
+
 
         # self.args = args
         # self.det_thresh = args.track_thresh
