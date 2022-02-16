@@ -2,7 +2,7 @@ from pymongo import MongoClient
 from loguru import logger
 from os import getenv
 from urllib.parse import quote_plus
-from datetime import datetime
+from datetime import datetime, timedelta
 
 user = getenv("MONGO_USERNAME_PRIMARY")
 password = getenv("MONGO_PASSWORD_PRIMARY")
@@ -64,10 +64,28 @@ def close_connection():
 def fetch_data(camera, panel):
     try:
         global infer_images_collection
+        from_dt = getenv("FROM_DT")
+        to_dt = getenv("TO_DT")
+
+        # try:
+        #     from_dt = datetime.strptime(from_dt, "%Y-%m-%dT%H:%M:%S")
+        #     to_dt = datetime.strptime(to_dt, "%Y-%m-%dT%H:%M:%S")
+        # except:
+        #     from_dt = datetime.now().replace(hour=00, minute=00, second=00) - timedelta(days=1)
+        #     to_dt = datetime.now().replace(hour=23, minute=59, second=59) - timedelta(days=1)
+
+        if from_dt is None or to_dt is None:
+            from_dt = datetime.now().replace(hour=00, minute=00, second=00) - timedelta(days=1)
+            to_dt = datetime.now().replace(hour=23, minute=59, second=59) - timedelta(days=1)
+        else:
+            from_dt = datetime.strptime(from_dt, "%Y-%m-%dT%H:%M:%S.364Z")
+            to_dt = datetime.strptime(to_dt, "%Y-%m-%dT%H:%M:%S.364Z")
         meta_data_dict_ret = infer_images_collection.find({
             'datetime_local': {
-                '$gte': datetime.strptime(getenv("FROM_DT"), "%Y-%m-%dT%H:%M:%S.364Z"),
-                '$lte': datetime.strptime(getenv("TO_DT"), "%Y-%m-%dT%H:%M:%S.364Z"),
+                '$gte': from_dt,
+                '$lte': to_dt,
+                # '$gte': datetime.strptime(from_dt, "%Y-%m-%dT%H:%M:%S.364Z"),
+                # '$lte': datetime.strptime(to_dt, "%Y-%m-%dT%H:%M:%S.364Z"),
             },
             'panel_no': panel,
             'channel_no': camera
