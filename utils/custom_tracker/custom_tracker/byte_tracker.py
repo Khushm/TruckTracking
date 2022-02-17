@@ -162,7 +162,6 @@ class BYTETracker(object):
         # self.buffer_size = int(frame_rate / 30.0 * args.track_buffer)
         self.buffer_size = int(frame_rate / 30.0 * self.track_buffer)
         self.max_time_lost = self.buffer_size
-        # print('Max time Lost', self.max_time_lost, 'Detection Thresh', self.det_thresh)
         self.kalman_filter = KalmanFilter()
 
     def update(self, output_results, img_info, img_size):
@@ -285,8 +284,6 @@ class BYTETracker(object):
                 if self.frame_id - track.end_frame > self.max_time_lost:
                     track.mark_removed()
                     removed_stracks.append(track)
-
-            # print('Ramained match {} s'.format(t4-t3))
 
             self.tracked_stracks = [t for t in self.tracked_stracks if t.state == TrackState.Tracked]
             self.tracked_stracks = joint_stracks(self.tracked_stracks, activated_starcks)

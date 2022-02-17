@@ -144,7 +144,7 @@ def process_data(camera, panel, _id):
                     _id_uuid_mapping[online_ids[_][2][0]] = {"_id": generate_uuid}
                 elif 'get_presignedUrl' in _id_uuid_mapping[online_ids[_][2][0]] and flag and similar_images(
                         url_image_converter(_id_uuid_mapping[online_ids[_][2][0]])[min_y0:min_y1, min_x0:min_x1],
-                        read_curr_image[min_y0:min_y1, min_x0:min_x1], camera, ix) < 4.9:
+                        read_curr_image[min_y0:min_y1, min_x0:min_x1]) < 4.9:
                     generate_uuid = str(uuid.uuid4())
                     _id_uuid_mapping[online_ids[_][2][0]] = {"_id": generate_uuid}
 

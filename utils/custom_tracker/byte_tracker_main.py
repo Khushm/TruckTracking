@@ -49,7 +49,6 @@ class Tracker:
                 self.online_targets = self.tracker.update(self.dets, self.info_imgs, self.img_size)
                 if len(self.online_targets) == len(self.sub_dets):
                     break
-            # print("Online Targets: ", self.online_targets)
             self.online_tlwhs = []
             self.online_ids = []
             self.online_scores = []
@@ -65,9 +64,6 @@ class Tracker:
             self.frame_id = self.frame_counter
             self._id, self.frame1 = plot_tracking(cam, self.frame, self.online_tlwhs, self.online_ids, self.frame_id,
                                                  self.fps / self.timer.average_time)
-
-            # print("ID: ", self._id)
-
             return self.results, self.frame
         except Exception as e:
             logger.error("Error in tracker infer | {}".format(e))
