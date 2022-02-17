@@ -239,8 +239,7 @@ def process_data(camera, panel, _id):
                 push_data(_id_uuid_mapping[online_ids[_][2][0]]['_id'], data, object_list)
     except Exception as e:
         logger.error('Error in fetching data | {}'.format(e))
-# 28 25 24 23 22
-# 21
+# 28 27 26 25 24 23 22 21 20
 
 # 28 25 23 22 thresh>[
 # image not loaded 21
