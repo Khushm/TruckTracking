@@ -84,8 +84,6 @@ def fetch_data(camera, panel):
             'datetime_local': {
                 '$gte': from_dt,
                 '$lte': to_dt,
-                # '$gte': datetime.strptime(from_dt, "%Y-%m-%dT%H:%M:%S.364Z"),
-                # '$lte': datetime.strptime(to_dt, "%Y-%m-%dT%H:%M:%S.364Z"),
             },
             'panel_no': panel,
             'channel_no': camera
@@ -118,14 +116,8 @@ def push_data(online_ids, data, object_list):
 
         except:
             pass
-        temp = {}
-        temp['_uuid'] = online_ids
-        temp['truck_list'] = object_list
+        temp = {'_uuid': online_ids, 'truck_list': object_list}
         data.update(temp)
-        # data.update(object_list)
         post_id = result_collection.insert_one(data)
-
-        # post_id = mongo_coll.insert_one(Truckdata).inserted_id
-        # logger.info("Data Inserted!")
     except Exception as e:
         logger.error("Error in dumping data | {}".format(e))

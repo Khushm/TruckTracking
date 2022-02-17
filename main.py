@@ -31,18 +31,3 @@ if __name__ == "__main__":
         run()
     except Exception as e:
         logger.error("Error in starting application | {}".format(e))
-
-# sudo docker run -dt --gpus all --env-file ./.env --name truck_tracker truck_tracking:0.3
-# sudo docker build -t truck_tracking:0.3 .
-
-# 21 Jan'22
-# docker container logs tracker
-# docker rm tracker
-# docker run -dt --env-file ./.env --name tracker tracker:v18
-# docker build -t tracker:v18 .
-# docker image rm tracker:v16
-# docker ps
-# docker image ls
-# docker-compose ps
-# docker images
-
