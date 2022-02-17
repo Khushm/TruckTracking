@@ -2,6 +2,7 @@
 .env
 ./utils/nms/
 #./utils/custom_tracker/custom_tracker/mot_tracking
+
 # Image Folders
 25/
 26/
@@ -11,3 +12,13 @@
 30/
 31/
 output/
+same_test/
+sample/
+diff_test/
+images/
+test/
+
+# test code
+a.py
+b.py
+c.py
