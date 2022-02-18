@@ -25,6 +25,12 @@ metadata_collection = None
 result_collection = None
 
 
+def remove_record():
+    global infer_images_collection
+    day = datetime(year=2022, month=2, day=1)
+    result = infer_images_collection.delete_many({'datetime_local': day})
+
+
 # connect to db
 def get_mongo_client():
     try:
@@ -74,7 +80,7 @@ def fetch_data(camera, panel):
         #     from_dt = datetime.now().replace(hour=00, minute=00, second=00) - timedelta(days=1)
         #     to_dt = datetime.now().replace(hour=23, minute=59, second=59) - timedelta(days=1)
 
-        if from_dt is None or to_dt is None:
+        if from_dt == 'None' or to_dt == 'None':
             from_dt = datetime.now().replace(hour=00, minute=00, second=00) - timedelta(days=1)
             to_dt = datetime.now().replace(hour=23, minute=59, second=59) - timedelta(days=1)
         else:

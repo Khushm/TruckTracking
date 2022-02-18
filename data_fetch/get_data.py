@@ -26,6 +26,7 @@ meta_data = []
 tracker = {}
 
 bbox_thresh = 7.4
+# bbox_thresh = 7.2
 # bbox_thresh = 10.2
 intersection_thresh = 80
 optical_thresh = 50
@@ -239,7 +240,9 @@ def process_data(camera, panel, _id):
                 push_data(_id_uuid_mapping[online_ids[_][2][0]]['_id'], data, object_list)
     except Exception as e:
         logger.error('Error in fetching data | {}'.format(e))
-# 28 27 26 25 24 23 22 21 20
+# 31 30 29 28 27 26 25 24 23 22 21 20 21
+# 1 2 3 4 5 6 7 8 10 11 14 15 16
+# Image not loaded - 9
 
 # 28 25 23 22 thresh>[
 # image not loaded 21

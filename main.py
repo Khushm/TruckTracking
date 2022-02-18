@@ -2,7 +2,7 @@ import time
 from loguru import logger
 import argparse
 import numpy as np
-from db.mongoConn import get_mongo_client, load_meta_data, close_connection, get_mongo_client_prod
+from db.mongoConn import get_mongo_client, load_meta_data, close_connection, get_mongo_client_prod, remove_record
 from data_fetch.get_data import process_data
 
 
@@ -11,6 +11,7 @@ def run():
     try:
         get_mongo_client()
         get_mongo_client_prod()
+        # remove_record()
         meta_col = load_meta_data()
 
         for i, data in enumerate(meta_col):
@@ -46,3 +47,8 @@ if __name__ == "__main__":
 # docker-compose ps
 # docker images
 
+# UI DOCKER IMAGE
+# npm run build
+# docker build -t trucktracking:v1.0 .
+# docker run
+#
